@@ -20,8 +20,8 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        $roles = explode('|', $role);
-        if(!in_array(Auth::user()->role->role_name, $roles)) {
+        $roleName = Auth::user()->role->role_name ?? null;
+        if (! $roleName || ! in_array($roleName, $roles, true)) {
             abort(403);
         }
 

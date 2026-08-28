@@ -28,16 +28,29 @@
                 <h4>Kode Pesanan: {{ $order->order_code }}</h4>
             </div>
             <div class="card-body">
+                @if (session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <p><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</p>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                @if (session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <p>{{ session('error') }}</p>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
                 <div class="row">
                     <div class="col-md-6">
                         <p>Dibuat Pada: {{ $order->created_at->format('d-m-Y H:i') }}</p>
                         <p>Nama Pelanggan: {{ $order->user->fullname }}</p>
-                        <p>Status:
-                            <span class="badge {{ $order->status == 'settlement' ? 'bg-success' : ($order->status == 'pending' ? 'bg-warning' : ($order->status == 'cooked' ? 'bg-primary' : 'bg-danger')) }}">
-                                {{ $order->status }}
+                        <p>Pembayaran: {{ $order->paymentStatusLabel() }}</p>
+                        <p>Status dapur:
+                            <span class="badge {{ $order->kitchenStatusBadgeClass() }}">
+                                {{ $order->kitchenStatusLabel() }}
                             </span>
                         </p>
-
+                        @include('admin.order._status_form', ['order' => $order, 'kitchenStatuses' => $kitchenStatuses])
                     </div>
                     <div class="col-md-6">
                         <p>No. Meja: {{ $order->table_number }}</p>

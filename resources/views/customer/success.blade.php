@@ -7,13 +7,7 @@
 <div class="container-fluid py-5 d-flex justify-content-center">
     <div class="receipt border p-4 bg-white shadow" style="width: 450px; margin-top: 5rem">
         <h5 class="text-center mb-2"> Pesanan berhasil dibuat!</h5>
-        @if ($order->payment_method == 'tunai' && $order->status == 'pending')
-            <p class="text-center"><span class="badge bg-danger">Menunggu Pembayaran</span></p>
-        @elseif ($order->payment_method == 'qris' && $order->status == 'pending')
-            <p class="text-center"><span class="badge bg-success">Menunggu konfirmasi pembayaran</span></p>
-        @else
-            <p class="text-center"><span class="badge bg-success">Pembayaran berhasil, pesanan segera diproses</span></p>
-        @endif
+        @include('customer.partials.order-progress', ['order' => $order])
         <hr>
         <h4 class="fw-bold text-center"> Kode bayar: <br> <span class="text-primary">{{ $order->order_code }}</span></h4>
         <hr>
@@ -50,7 +44,8 @@
             <p class="small text-center">Yeay! Pembayaran sukses. Duduk manis ya, psanan kamu segera kami proses!</p>
         @endif
         <hr>
-        <a href="{{ route('menu') }}" class="btn btn-primary w-100">Kembali ke menu</a>
+        <a href="{{ route('customer.orders.show', $order->order_code) }}" class="btn btn-primary w-100 mb-2">Lacak proses pesanan</a>
+        <a href="{{ route('menu') }}" class="btn btn-outline-secondary w-100">Kembali ke menu</a>
     </div>
 
 </div>

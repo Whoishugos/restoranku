@@ -56,13 +56,13 @@
                     </a>
                 </li>
 
+                @if (Auth::user()->role->role_name == 'admin')
                 <li class="sidebar-item {{ request()->routeIs('items.*') ? 'active' : '' }}">
-                    <a href=" {{ route('items.index') }}" class='sidebar-link'>
+                    <a href="{{ route('items.index') }}" class='sidebar-link'>
                         <i class="bi bi-file-earmark-text-fill"></i>
                         <span>Daftar Menu</span>
                     </a>
                 </li>
-                @if (Auth::user()->role->role_name == 'admin')
                 <li class="sidebar-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
                     <a href="{{ route('users.index') }}" class='sidebar-link'>
                         <i class="bi bi-people-fill"></i>

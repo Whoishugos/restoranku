@@ -11,13 +11,14 @@ use App\Http\Controllers\TableQrController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-
 Route::get('/', function () {
     return redirect()->route('menu');
 });
 
 Route::get('/menu', [MenuController::class, 'index'])->name('menu');
-Route::get('/meja/{tableNumber}', [MenuController::class, 'scanTable']) ->whereNumber('tableNumber') ->name('menu.scan');
+Route::get('/meja/{tableNumber}', [MenuController::class, 'scanTable'])
+    ->whereNumber('tableNumber')
+    ->name('menu.scan');
 Route::get('/cart', [MenuController::class, 'cart'])->name('cart');
 Route::post('/cart/add', [MenuController::class, 'addToCart'])->name('cart.add');
 Route::post('/cart/update', [MenuController::class, 'updateCart'])->name('cart.update');
@@ -28,20 +29,25 @@ Route::get('/checkout', [MenuController::class, 'checkout'])->name('checkout');
 Route::post('/checkout/store', [MenuController::class, 'storeOrder'])->name('checkout.store');
 Route::get('/checkout/success/{orderId}', [MenuController::class, 'checkoutSuccess'])->name('checkout.success');
 
+Route::get('/pesanan', [MenuController::class, 'trackOrders'])->name('customer.orders');
+Route::get('/pesanan/{orderCode}/status', [MenuController::class, 'trackOrderStatus'])->name('customer.orders.status');
+Route::get('/pesanan/{orderCode}', [MenuController::class, 'trackOrder'])->name('customer.orders.show');
+
 Route::post('/midtrans/notification', [MidtransController::class, 'notification'])->name('midtrans.notification');
 
-// admin routes
 Route::middleware('role:admin')->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::resource('roles', RoleController::class);
     Route::resource('users', UserController::class);
     Route::get('/qr-meja', [TableQrController::class, 'index'])->name('tables.qr');
+    Route::post('items/update-status/{item}', [ItemController::class, 'updateStatus'])->name('items.updateStatus');
+    Route::resource('items', ItemController::class);
 });
 
 Route::middleware('role:admin|cashier|chef')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::resource('orders', OrderController::class);
-    Route::post('items/update-status/{order}', [ItemController::class, 'updateStatus'])->name('items.updateStatus');
-    Route::resource('items', ItemController::class);
-    Route::post('orders/{order}', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('orders/{order}/payment', [OrderController::class, 'confirmPayment'])->name('orders.confirmPayment');
+    Route::post('orders/{order}/kitchen-status', [OrderController::class, 'updateKitchenStatus'])->name('orders.updateKitchenStatus');
 });

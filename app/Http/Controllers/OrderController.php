@@ -1,46 +1,55 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Order;
-use App\Models\OrderItem;
+use App\Services\MidtransService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
 
-class OrderController extends Controller
+class MidtransController extends Controller
 {
-    public function index()
+    public function notification(Request $request, MidtransService $midtrans): Response
     {
-        // Fetch all orders from the database
-        $orders = Order::all()->sortByDesc('created_at');
-
-        // Return the view with the orders
-        return view('admin.order.index', compact('orders'));
-    }
-
-    public function show($id)
-    {
-        // Fetch the order by ID
-        $order = Order::findOrFail($id);
-        $orderItems = OrderItem::where('order_id', $order->id)->get();
-
-        // Return the view with the order details
-        return view('admin.order.show', compact('order', 'orderItems'));
-    }
-
-    public function updateStatus($id)
-    {
-        // Fetch the order by ID
-        $order = Order::findOrFail($id);
-
-        // Update the order status to 'settled'
-        if(Auth::user()->role->role_name == 'admin' || Auth::user()->role->role_name == 'cashier') {
-            $order->status = 'settlement';
-        } else {
-            $order->status = 'cooked';
+        if (! $midtrans->isConfigured()) {
+            return response('Midtrans is not configured', 503);
         }
+
+        $notif = $midtrans->notification();
+        $order = Order::where('order_code', $notif->order_id)->first();
+
+        if (! $order) {
+            return response('Order not found', 404);
+        }
+
+        if (in_array($order->kitchen_status, ['cooking', 'ready'], true) || $order->status === 'cooked') {
+            return response('OK', 200);
+        }
+
+        $transaction = $notif->transaction_status;
+        $fraud = $notif->fraud_status ?? null;
+        $type = $notif->payment_type ?? null;
+
+        if ($transaction === 'capture') {
+            if ($type === 'credit_card' && $fraud === 'challenge') {
+                $order->status = 'pending';
+            } else {
+                $order->status = 'settlement';
+            }
+        } elseif ($transaction === 'settlement') {
+            $order->status = 'settlement';
+        } elseif ($transaction === 'pending') {
+            $order->status = 'pending';
+        } elseif (in_array($transaction, ['deny', 'expire', 'cancel'], true)) {
+            $order->status = 'pending';
+        }
+
+        if ($order->status === 'settlement' && ($order->kitchen_status === 'waiting' || $order->kitchen_status === null)) {
+            $order->kitchen_status = 'processing';
+        }
+
         $order->save();
 
-        // Redirect back to the orders index with a success message
-        return redirect()->route('orders.index')->with('success', 'Order settled successfully.');
+        return response('OK', 200);
     }
 }

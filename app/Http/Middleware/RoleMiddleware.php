@@ -4,24 +4,32 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
 {
     /**
-     * Handle an incoming request.
-     *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (Auth::guest()) {
             return redirect()->route('login');
         }
 
-        $roleName = Auth::user()->role->role_name ?? null;
-        if (! $roleName || ! in_array($roleName, $roles, true)) {
+        $allowed = [];
+        foreach ($roles as $role) {
+            foreach (explode('|', $role) as $name) {
+                $name = trim($name);
+                if ($name !== '') {
+                    $allowed[] = $name;
+                }
+            }
+        }
+
+        $roleName = Auth::user()->role?->role_name;
+        if ($roleName === null || ! in_array($roleName, $allowed, true)) {
             abort(403);
         }
 

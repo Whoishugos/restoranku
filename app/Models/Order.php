@@ -1,55 +1,122 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Models;
 
-use App\Models\Order;
-use App\Services\MidtransService;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Database\Eloquent\Model;
 
-class MidtransController extends Controller
+class Order extends Model
 {
-    public function notification(Request $request, MidtransService $midtrans): Response
+    public const KITCHEN_WAITING = 'waiting';
+    public const KITCHEN_PROCESSING = 'processing';
+    public const KITCHEN_COOKING = 'cooking';
+    public const KITCHEN_READY = 'ready';
+
+    protected $fillable = [
+        'order_code',
+        'user_id',
+        'subtotal',
+        'tax',
+        'grand_total',
+        'status',
+        'kitchen_status',
+        'table_number',
+        'payment_method',
+        'note',
+        'created_at',
+        'updated_at',
+    ];
+
+    protected $dates = ['deleted_at'];
+
+    public function user()
     {
-        if (! $midtrans->isConfigured()) {
-            return response('Midtrans is not configured', 503);
+        return $this->belongsTo(User::class);
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function isPaid(): bool
+    {
+        return in_array($this->status, ['settlement', 'cooked'], true);
+    }
+
+    public function kitchenStatus(): string
+    {
+        $status = $this->kitchen_status ?: self::KITCHEN_WAITING;
+
+        if ($this->status === 'cooked') {
+            return self::KITCHEN_READY;
         }
 
-        $notif = $midtrans->notification();
-        $order = Order::where('order_code', $notif->order_id)->first();
-
-        if (! $order) {
-            return response('Order not found', 404);
+        if ($this->isPaid() && $status === self::KITCHEN_WAITING) {
+            return self::KITCHEN_PROCESSING;
         }
 
-        if (in_array($order->kitchen_status, ['cooking', 'ready'], true) || $order->status === 'cooked') {
-            return response('OK', 200);
+        return $status;
+    }
+
+    public function paymentStatusLabel(): string
+    {
+        if ($this->isPaid()) {
+            return 'Pembayaran diterima';
         }
 
-        $transaction = $notif->transaction_status;
-        $fraud = $notif->fraud_status ?? null;
-        $type = $notif->payment_type ?? null;
+        return $this->payment_method === 'qris'
+            ? 'Menunggu konfirmasi pembayaran'
+            : 'Menunggu pembayaran';
+    }
 
-        if ($transaction === 'capture') {
-            if ($type === 'credit_card' && $fraud === 'challenge') {
-                $order->status = 'pending';
-            } else {
-                $order->status = 'settlement';
-            }
-        } elseif ($transaction === 'settlement') {
-            $order->status = 'settlement';
-        } elseif ($transaction === 'pending') {
-            $order->status = 'pending';
-        } elseif (in_array($transaction, ['deny', 'expire', 'cancel'], true)) {
-            $order->status = 'pending';
+    public function kitchenStatusLabel(): string
+    {
+        if (! $this->isPaid()) {
+            return $this->paymentStatusLabel();
         }
 
-        if ($order->status === 'settlement' && ($order->kitchen_status === 'waiting' || $order->kitchen_status === null)) {
-            $order->kitchen_status = 'processing';
+        return match ($this->kitchenStatus()) {
+            self::KITCHEN_COOKING => 'Sedang dimasak',
+            self::KITCHEN_READY => 'Siap disajikan',
+            default => 'Proses',
+        };
+    }
+
+    public function kitchenStatusBadgeClass(): string
+    {
+        if (! $this->isPaid()) {
+            return 'bg-warning';
         }
 
-        $order->save();
+        return match ($this->kitchenStatus()) {
+            self::KITCHEN_COOKING => 'bg-info',
+            self::KITCHEN_READY => 'bg-success',
+            default => 'bg-primary',
+        };
+    }
 
-        return response('OK', 200);
+    /**
+     * 0 menunggu pembayaran, 1 proses, 2 sedang dimasak, 3 siap disajikan
+     */
+    public function progressStep(): int
+    {
+        if (! $this->isPaid()) {
+            return 0;
+        }
+
+        return match ($this->kitchenStatus()) {
+            self::KITCHEN_COOKING => 2,
+            self::KITCHEN_READY => 3,
+            default => 1,
+        };
+    }
+
+    public static function kitchenStatusOptions(): array
+    {
+        return [
+            self::KITCHEN_PROCESSING => 'Proses',
+            self::KITCHEN_COOKING => 'Sedang dimasak',
+            self::KITCHEN_READY => 'Siap disajikan',
+        ];
     }
 }

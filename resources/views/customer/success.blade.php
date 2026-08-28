@@ -38,10 +38,12 @@
                 </tr>
             </tbody>
         </table>
-        @if ($order->payment_method =='tunai')
+        @if ($order->payment_method === 'tunai')
             <p class="small text-center">Tunjukkan kode bayar ini ke kasir untuk menyelesaikan pembayaran. Jangan lupa senyum ya!</p>
-        @elseif ($order->payment_method == 'qris')
-            <p class="small text-center">Yeay! Pembayaran sukses. Duduk manis ya, psanan kamu segera kami proses!</p>
+        @elseif ($order->isPaid())
+            <p class="small text-center">Pembayaran QRIS berhasil. Duduk manis ya, pesanan kamu segera kami proses!</p>
+        @else
+            <p class="small text-center">Pesanan tersimpan. Selesaikan pembayaran QRIS di jendela Midtrans, atau cek status di halaman lacak pesanan.</p>
         @endif
         <hr>
         <a href="{{ route('customer.orders.show', $order->order_code) }}" class="btn btn-primary w-100 mb-2">Lacak proses pesanan</a>

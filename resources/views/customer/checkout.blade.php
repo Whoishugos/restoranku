@@ -12,6 +12,12 @@
 <div class="container-fluid py-5">
     <div class="container py-5">
         <h1 class="mb-4">Detail Pembayaran</h1>
+        @if (session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
+        @if ($errors->any())
+            <div class="alert alert-danger">{{ $errors->first() }}</div>
+        @endif
         <form id="checkout-form" action="{{ route('checkout.store') }}" method="POST">
             @csrf
             <div class="row g-5">
@@ -31,7 +37,7 @@
                         <div class="col-md-12 col-lg-4">
                             <div class="form-item w-100">
                                 <label class="form-label my-3">Nomor Meja<sup>*</sup></label>
-                                <input type="text" class="form-control" value="{{ $tableNumber ?? 'Tidak ada nomor meja' }}" disabled required>
+                                <input type="number" name="table_number" class="form-control" min="1" max="99" placeholder="Contoh: 5" value="{{ old('table_number', $tableNumber) }}" required>
                             </div>
                         </div>
                     </div>
@@ -113,18 +119,21 @@
                                     <h5 class="mb-0 ps-4 me-4">Metode Pembayaran</h5>
                                     <div class="mb-0 pe-4 mb-3 pe-5">
                                         <div class="form-check">
-                                            <input type="radio" class="form-check-input bg-primary border-0" id="qris" name="payment_method" value="qris">
-                                            <label class="form-check-label" for="qris">QRIS</label>
+                                            <input type="radio" class="form-check-input bg-primary border-0" id="qris" name="payment_method" value="qris" checked>
+                                            <label class="form-check-label" for="qris">QRIS (Midtrans)</label>
                                         </div>
                                         <div class="form-check">
                                             <input type="radio" class="form-check-input bg-primary border-0" id="cash" name="payment_method" value="tunai">
-                                            <label class="form-check-label" for="cash">Tunai</label>
+                                            <label class="form-check-label" for="cash">Tunai di kasir</label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            @if (! $midtransConfigured)
+                                <p class="text-danger small mt-2">QRIS belum siap: isi MIDTRANS_SERVER_KEY dan MIDTRANS_CLIENT_KEY di file .env.</p>
+                            @endif
                             <div class="d-flex justify-content-end">
-                                <button type="button" id="pay-button" class="btn border-secondary py-3 text-uppercase text-primary">Konfirmasi Pesanan</button>
+                                <button type="button" id="pay-button" class="btn border-secondary py-3 text-uppercase text-primary">Bayar Sekarang</button>
                             </div>
 
                         </div>
@@ -134,59 +143,91 @@
         </form>
     </div>
 </div>
+@endsection
 
-<script  src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
+@section('script')
+@if ($midtransConfigured)
+<script src="{{ config('midtrans.snap_url') }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
+@endif
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const payButton = document.getElementById("pay-button");
-        const form = document.querySelector("form");
+        const form = document.getElementById("checkout-form");
+        const successUrlTemplate = @json(route('checkout.success', ['orderId' => '__ORDER__']));
 
         payButton.addEventListener("click", function () {
             let paymentMethod = document.querySelector('input[name="payment_method"]:checked');
 
-            if(!paymentMethod) {
-                alert("Pilih Metode Pembayaran Terlebih Dahulu!");
+            if (!paymentMethod) {
+                alert("Pilih metode pembayaran terlebih dahulu.");
+                return;
+            }
+
+            if (!form.reportValidity()) {
                 return;
             }
 
             paymentMethod = paymentMethod.value;
-            let formData = new FormData(form);
+            payButton.disabled = true;
 
-            if(paymentMethod === "tunai") {
+            if (paymentMethod === "tunai") {
                 form.submit();
-            } else {
-                fetch("{{ route('checkout.store') }}", {
-                    method: "POST",
-                    body: formData,
-                    headers: {
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if(data.snap_token) {
-                        snap.pay(data.snap_token, {
-                            onSuccess: function(result) {
-                                window.location.href = "/checkout/success/" + data.order_code;
-                            },
-                            onPending: function(result) {
-                                alert("Menunggu Pembayaran");
-                            },
-                            onError: function(result) {
-                                alert("Pembayaran Gagal");
-                            }
-                        });
-                    } else {
-                        alert("Terjadi kesalahan, silakan coba lagi.");
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    alert("Terjadi kesalahan, silakan coba lagi ya.");
-                });
+                return;
             }
-        })
-    })
-</script>
 
+            if (typeof snap === "undefined") {
+                payButton.disabled = false;
+                alert("Midtrans belum siap. Periksa Client Key di .env.");
+                return;
+            }
+
+            const formData = new FormData(form);
+
+            fetch("{{ route('checkout.store') }}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "Accept": "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                }
+            })
+            .then(async (response) => {
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.message || "Gagal membuat pembayaran.");
+                }
+                return data;
+            })
+            .then((data) => {
+                if (!data.snap_token) {
+                    throw new Error(data.message || "Token pembayaran tidak tersedia.");
+                }
+
+                const successUrl = successUrlTemplate.replace("__ORDER__", encodeURIComponent(data.order_code));
+
+                snap.pay(data.snap_token, {
+                    onSuccess: function () {
+                        window.location.href = successUrl;
+                    },
+                    onPending: function () {
+                        window.location.href = successUrl;
+                    },
+                    onError: function () {
+                        payButton.disabled = false;
+                        alert("Pembayaran gagal. Silakan coba lagi.");
+                    },
+                    onClose: function () {
+                        window.location.href = successUrl;
+                    }
+                });
+            })
+            .catch((error) => {
+                payButton.disabled = false;
+                alert(error.message || "Terjadi kesalahan, silakan coba lagi.");
+            });
+        });
+    });
+</script>
 @endsection
+

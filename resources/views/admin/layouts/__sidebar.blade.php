@@ -56,7 +56,7 @@
                     </a>
                 </li>
 
-                @if (Auth::user()->role->role_name == 'admin')
+                @if (Auth::user()?->role?->role_name === 'admin')
                 <li class="sidebar-item {{ request()->routeIs('items.*') ? 'active' : '' }}">
                     <a href="{{ route('items.index') }}" class='sidebar-link'>
                         <i class="bi bi-file-earmark-text-fill"></i>

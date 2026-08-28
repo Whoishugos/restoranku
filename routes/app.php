@@ -35,7 +35,7 @@ Route::get('/pesanan/{orderCode}', [MenuController::class, 'trackOrder'])->name(
 
 Route::post('/midtrans/notification', [MidtransController::class, 'notification'])->name('midtrans.notification');
 
-Route::middleware('role:admin')->group(function () {
+Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::resource('roles', RoleController::class);
     Route::resource('users', UserController::class);
@@ -44,7 +44,7 @@ Route::middleware('role:admin')->group(function () {
     Route::resource('items', ItemController::class);
 });
 
-Route::middleware('role:admin|cashier|chef')->group(function () {
+Route::middleware(['auth', 'role:admin,cashier,chef'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');

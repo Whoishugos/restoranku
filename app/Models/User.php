@@ -19,11 +19,21 @@ class User extends Authenticatable
         'email',
         'phone',
         'role_id',
-        'created_at',
-        'update_at',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     protected $dates = ['deleted_at'];
+
+    protected function casts(): array
+    {
+        return [
+            'password' => 'hashed',
+        ];
+    }
 
     public function role()
     {

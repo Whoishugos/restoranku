@@ -20,21 +20,26 @@
                     <h1 class="auth-title">Log in Restoranku</h1>
                     <p class="auth-subtitle mb-5">Silakan masuk untuk mengelola layanan Restoranku.</p>
 
+                    @if ($errors->any())
+                        <div class="alert alert-danger">{{ $errors->first() }}</div>
+                    @endif
+
                     <form method="POST" action="{{ route('login') }}">
                         @csrf
                         <div class="form-group position-relative has-icon-left mb-4">
-                            <input type="text" class="form-control form-control-xl" placeholder="Email" name="email" :value="old('email')" required autofocus autocomplete="Email">
+                            <input type="text" class="form-control form-control-xl" placeholder="Email atau username" name="email" value="{{ old('email') }}" required autofocus autocomplete="username">
                             <div class="form-control-icon">
                                 <i class="bi bi-person"></i>
                             </div>
                         </div>
                         <div class="form-group position-relative has-icon-left mb-4">
-                            <input type="password" class="form-control form-control-xl" placeholder="Password" name="password" require autocomplete="current-password">
+                            <input type="password" class="form-control form-control-xl" placeholder="Password" name="password" required autocomplete="current-password">
                             <div class="form-control-icon">
                                 <i class="bi bi-shield-lock"></i>
                             </div>
                         </div>
-                        <button class="btn btn-primary btn-block btn-lg shadow-lg mt-5">Log in</button>
+                        <p class="text-muted small mb-0">Akun admin: <strong>admin@restoranku.com</strong> / <strong>password</strong></p>
+                        <button class="btn btn-primary btn-block btn-lg shadow-lg mt-4">Log in</button>
                     </form>
                 </div>
             </div>

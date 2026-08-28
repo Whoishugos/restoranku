@@ -11,18 +11,30 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (! Schema::hasTable('categories')) {
+            Schema::create('categories', function (Blueprint $table) {
+                $table->id();
+                $table->string('cat_name')->unique();
+                $table->string('description');
+                $table->softDeletes();
+                $table->timestamps();
+            });
+        }
+
+        if (Schema::hasTable('items')) {
+            return;
+        }
+
         Schema::create('items', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->text('description');
             $table->integer('price');
-            $table->unsignedBigInteger('category_id');
+            $table->foreignId('category_id')->constrained('categories');
             $table->string('img')->nullable();
             $table->boolean('is_active')->default(true);
             $table->softDeletes();
             $table->timestamps();
-
-            $table->foreign('category_id')->references('id')->on('categories');
         });
     }
 

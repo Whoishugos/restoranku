@@ -11,6 +11,7 @@ use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class MenuController extends Controller
 {
@@ -81,22 +82,32 @@ class MenuController extends Controller
     public function updateCart(Request $request)
     {
         $itemId = $request->input('id');
-        $newQty = $request->input('qty');
+        $newQty = (int) $request->input('qty');
+        $cart = Session::get('cart', []);
+
+        if (! isset($cart[$itemId])) {
+            return response()->json(['success' => false, 'message' => 'Item tidak ditemukan']);
+        }
 
         if ($newQty <= 0) {
-            return response()->json(['success' => false]);
-        }
-
-        $cart = Session::get('cart', []);
-        if (isset($cart[$itemId])) {
-            $cart[$itemId]['qty'] = $newQty;
+            unset($cart[$itemId]);
             Session::put('cart', $cart);
-            Session::flash('success', 'Jumlah item berhasil diperbarui');
 
-            return response()->json(['success' => true]);
+            return response()->json([
+                'success' => true,
+                'removed' => true,
+                'empty' => $cart === [],
+            ]);
         }
 
-        return response()->json(['success' => false]);
+        $cart[$itemId]['qty'] = $newQty;
+        Session::put('cart', $cart);
+
+        return response()->json([
+            'success' => true,
+            'removed' => false,
+            'qty' => $newQty,
+        ]);
     }
 
     public function removeCart(Request $request)
@@ -122,25 +133,23 @@ class MenuController extends Controller
         return redirect()->route('cart')->with('success', 'Keranjang berhasil dikosongkan');
     }
 
-    public function checkout()
+    public function checkout(MidtransService $midtrans)
     {
         $cart = Session::get('cart');
         if (empty($cart)) {
             return redirect()->route('cart')->with('error', 'Keranjang masih kosong');
         }
 
-        $tableNumber = Session::get('tableNumber');
-        if (! $tableNumber) {
-            return redirect()->route('menu')->with('error', 'Scan QR meja terlebih dahulu agar nomor meja terisi otomatis.');
-        }
-
-        return view('customer.checkout', compact('cart', 'tableNumber'));
+        return view('customer.checkout', [
+            'cart' => $cart,
+            'tableNumber' => Session::get('tableNumber'),
+            'midtransConfigured' => $midtrans->isConfigured(),
+        ]);
     }
 
     public function storeOrder(Request $request, MidtransService $midtrans)
     {
         $cart = Session::get('cart');
-        $tableNumber = Session::get('tableNumber');
         $wantsJson = $request->ajax() || $request->expectsJson() || $request->payment_method === 'qris';
 
         if (empty($cart)) {
@@ -151,17 +160,19 @@ class MenuController extends Controller
             return redirect()->route('cart')->with('error', 'Keranjang masih kosong');
         }
 
+        $tableNumber = $this->resolveTableNumber($request->input('table_number'));
         if (! $tableNumber) {
             if ($wantsJson) {
-                return response()->json(['status' => 'error', 'message' => 'Nomor meja belum terdeteksi. Scan QR meja terlebih dahulu.'], 422);
+                return response()->json(['status' => 'error', 'message' => 'Isi nomor meja terlebih dahulu.'], 422);
             }
 
-            return redirect()->route('menu')->with('error', 'Scan QR meja terlebih dahulu agar nomor meja terisi otomatis.');
+            return redirect()->route('checkout')->with('error', 'Isi nomor meja terlebih dahulu.');
         }
 
         $validator = Validator::make($request->all(), [
             'fullname' => 'required|string|max:255',
             'phone' => 'required|string|max:15',
+            'table_number' => 'nullable|integer|min:1|max:99',
             'payment_method' => 'required|in:tunai,qris',
             'note' => 'nullable|string|max:1000',
         ]);
@@ -219,7 +230,7 @@ class MenuController extends Controller
         }
 
         $order = Order::create([
-            'order_code' => 'ORD-'.$tableNumber.'-'.time(),
+            'order_code' => 'ORD-'.$tableNumber.'-'.now()->format('YmdHis').strtoupper(Str::random(4)),
             'user_id' => $user->id,
             'subtotal' => $totalAmount,
             'tax' => $tax,
@@ -266,6 +277,10 @@ class MenuController extends Controller
             'customer_details' => [
                 'first_name' => $user->fullname ?? 'Guest',
                 'phone' => $user->phone,
+            ],
+            'enabled_payments' => ['gopay', 'other_qris', 'shopeepay', 'bank_transfer'],
+            'callbacks' => [
+                'finish' => route('checkout.success', $order->order_code),
             ],
         ];
 
@@ -322,6 +337,17 @@ class MenuController extends Controller
         }
 
         $this->storeTableNumber($tableNumber);
+    }
+
+    private function resolveTableNumber(mixed $tableNumber): ?int
+    {
+        if ($this->storeTableNumber($tableNumber)) {
+            return (int) Session::get('tableNumber');
+        }
+
+        $existing = Session::get('tableNumber');
+
+        return $existing ? (int) $existing : null;
     }
 
     private function storeTableNumber(mixed $tableNumber): bool

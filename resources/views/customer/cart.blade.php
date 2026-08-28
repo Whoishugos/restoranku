@@ -112,7 +112,7 @@
                 </div>
                 <div class="d-flex justify-content-end">
                     <div class="mb-0 mb-3">
-                        <a href="{{ route('checkout') }}" class="btn border-secondary py-3 text-primary text-uppercase mb-4" type="button">Lanjut ke Pembayaran</a>
+                        <a href="{{ route('checkout') }}" class="btn border-secondary py-3 text-primary text-uppercase mb-4">Lanjut ke Pembayaran</a>
                     </div>
                 </div>
             </div>
@@ -126,20 +126,14 @@
     <script>
         function updateQuantity(itemId, change) {
             var qtyInput = document.getElementById('qty-' + itemId);
-            var currentQty = parseInt(qtyInput.value);
+            var currentQty = parseInt(qtyInput.value, 10);
             var newQty = currentQty + change;
-
-            if (newQty <= 0 ) {
-                if(confirm('Apakah anda yakin ingin menghapus item ini?')) {
-                    removeItemFromCart(itemId);
-                }
-                return;
-            }
 
             fetch("{{ route('cart.update') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 body: JSON.stringify({ id: itemId, qty: newQty })
@@ -147,10 +141,9 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    qtyInput.value = newQty;
                     location.reload();
                 } else {
-                    alert(data.message);
+                    alert(data.message || 'Gagal memperbarui keranjang');
                 }
             })
             .catch((error) => {

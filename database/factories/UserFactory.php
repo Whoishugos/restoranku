@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Role;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -29,7 +30,10 @@ class UserFactory extends Factory
             'fullname' => $this->faker->name,
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->phoneNumber(),
-            'role_id' => fake()->numberBetween(1, 3),
+            'role_id' => Role::query()->firstOrCreate(
+                ['role_name' => 'admin'],
+                ['description' => 'Administrator']
+            )->id,
         ];
     }
 

@@ -8,20 +8,15 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
+        $this->app['config']->set('cache.default', 'file');
+        $this->app['config']->set('session.driver', 'file');
+        $this->app['config']->set('queue.default', 'sync');
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        //
         View::composer('customer.*', function ($view) {
             $view->with('tableNumber', Session::get('tableNumber'));
         });

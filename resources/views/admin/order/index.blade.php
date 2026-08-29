@@ -68,8 +68,16 @@
                             <td>
                                 <div class="fw-semibold">{{ $order->order_code }}</div>
                                 @foreach ($order->orderItems as $orderItem)
-                                    <div class="small text-muted">{{ $orderItem->item->name ?? 'Menu' }} x{{ $orderItem->quantity }}</div>
-                                    @include('admin.order._kds_addons', ['addons' => $orderItem->addons ?? []])
+                                    @php
+                                        $menuName = $orderItem->item->name ?? 'Menu';
+                                        $addonNames = collect($orderItem->addons ?? [])->pluck('name')->filter()->implode(', ');
+                                    @endphp
+                                    <div class="small text-muted" title="{{ trim($menuName.($addonNames ? ' + '.$addonNames : '')) }}">
+                                        {{ Str::limit($menuName, 22) }} x{{ $orderItem->quantity }}
+                                        @if ($addonNames !== '')
+                                            <span>+ {{ Str::limit($addonNames, 42) }}</span>
+                                        @endif
+                                    </div>
                                 @endforeach
                             </td>
                             <td>{{ $order->user->fullname ?? '-' }}</td>

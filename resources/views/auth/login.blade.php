@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Restoranku</title>
+    <title>Login - {{ config('app.name') }}</title>
     <link rel="stylesheet" crossorigin="" href="{{ asset('assets/admin/compiled/css/app.css') }}">
     <link rel="stylesheet" crossorigin="" href="{{ asset('assets/admin/compiled/css/app-dark.css') }}">
     <link rel="stylesheet" crossorigin="" href="{{ asset('assets/admin/compiled/css/auth.css') }}">
@@ -17,8 +17,8 @@
                     <div class="auth-logo">
 
                     </div>
-                    <h1 class="auth-title">Log in Restoranku</h1>
-                    <p class="auth-subtitle mb-5">Silakan masuk untuk mengelola layanan Restoranku.</p>
+                    <h1 class="auth-title" style="font-size: 1.75rem; line-height: 1.25;">{{ config('app.name') }}</h1>
+                    <p class="auth-subtitle mb-5">Silakan masuk untuk mengelola layanan restoran.</p>
 
                     @if ($errors->any())
                         <div class="alert alert-danger">{{ $errors->first() }}</div>
@@ -38,7 +38,6 @@
                                 <i class="bi bi-shield-lock"></i>
                             </div>
                         </div>
-                        <p class="text-muted small mb-0">Akun admin: <strong>admin@restoranku.com</strong> / <strong>password</strong></p>
                         <button class="btn btn-primary btn-block btn-lg shadow-lg mt-4">Log in</button>
                     </form>
                 </div>

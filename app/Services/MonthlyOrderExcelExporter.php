@@ -66,7 +66,7 @@ class MonthlyOrderExcelExporter
             'Pelanggan' => $this->customerRows($orders),
         ]);
 
-        $filename = 'laporan-restoranku-'.$yearMonth.'.xls';
+        $filename = 'laporan-kekupu-villa-jembrana-'.$yearMonth.'.xls';
 
         return response()->streamDownload(function () use ($xml) {
             echo $xml;
@@ -142,7 +142,7 @@ class MonthlyOrderExcelExporter
     private function summaryRows(Carbon $period, Collection $orders, Collection $paid, Collection $unpaid, int $gross, int $tax, int $revenue): array
     {
         return [
-            $this->stringRow(['Laporan Bulanan Restoranku', '']),
+            $this->stringRow(['Laporan Bulanan '.config('app.name'), '']),
             $this->stringRow(['Periode', $this->monthLabel($period)]),
             $this->stringRow(['Dicetak', now()->format('d-m-Y H:i')]),
             $this->stringRow(['', '']),
@@ -190,6 +190,7 @@ class MonthlyOrderExcelExporter
                     if ($addons !== '') {
                         $name .= ' + '.$addons;
                     }
+
                     return $name.' x'.$orderItem->quantity;
                 })
                 ->implode(', ');

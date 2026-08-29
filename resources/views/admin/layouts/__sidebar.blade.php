@@ -2,8 +2,10 @@
     <div class="sidebar-wrapper active">
         <div class="sidebar-header position-relative">
             <div class="d-flex justify-content-between align-items-center">
-                <h4 class="logo">
-                    <a href="{{ url('index') }}">Restoranku</a>
+                <h4 class="logo mb-0">
+                    <a href="{{ route('dashboard') }}" class="d-inline-block" style="font-size: .72rem; line-height: 1.2; letter-spacing: .04em; white-space: normal;">
+                        {{ config('app.name') }}
+                    </a>
                 </h4>
                 <div class="theme-toggle d-flex gap-2  align-items-center mt-2">
                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true"

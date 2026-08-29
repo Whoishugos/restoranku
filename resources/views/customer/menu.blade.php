@@ -79,9 +79,9 @@
     <script>
         let addonState = { itemId: null, basePrice: 0, groups: [] };
         const addonModal = new bootstrap.Modal(document.getElementById('addonModal'));
-        const customizeUrl = {!! json_encode(url('/menu')) !!};
-        const cartAddUrl = {!! json_encode(route('cart.add')) !!};
-        const csrf = {!! json_encode(csrf_token()) !!};
+        const customizeUrl = "{{ url('/menu') }}";
+        const cartAddUrl = "{{ route('cart.add') }}";
+        const csrf = "{{ csrf_token() }}";
 
         function formatRp(n) {
             return 'Rp' + Number(n).toLocaleString('id-ID');

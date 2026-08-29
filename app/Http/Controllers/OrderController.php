@@ -48,6 +48,14 @@ class OrderController extends Controller
         return view('admin.order.show', compact('order', 'orderItems', 'kitchenStatuses'));
     }
 
+    public function nota($id)
+    {
+        $order = Order::with(['user', 'orderItems.item'])->findOrFail($id);
+        $orderItems = $order->orderItems;
+
+        return view('admin.order.nota', compact('order', 'orderItems'));
+    }
+
     public function confirmPayment($id)
     {
         $role = Auth::user()->role->role_name ?? null;

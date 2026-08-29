@@ -60,6 +60,7 @@ Route::middleware(['auth', 'role:admin,cashier'])->group(function () {
 Route::middleware(['auth', 'role:admin,cashier,chef'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/{order}/nota', [OrderController::class, 'nota'])->name('orders.nota');
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('orders/{order}/payment', [OrderController::class, 'confirmPayment'])->name('orders.confirmPayment');
     Route::post('orders/{order}/kitchen-status', [OrderController::class, 'updateKitchenStatus'])->name('orders.updateKitchenStatus');

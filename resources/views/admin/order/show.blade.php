@@ -14,12 +14,12 @@
                 <h3>Detail Pesanan</h3>
                 <p class="text-subtitle text-muted">Informasi Detail Pesanan yang Masuk</p>
             </div>
-            {{-- <div class="col-12 col-md-6 order-md-2 order-first">
-                <a href="{{ route('items.create') }}" class="btn btn-primary float-start float-lg-end">
-                    <i class="bi bi-plus"></i>
-                    Tambah Menu
+            <div class="col-12 col-md-6 order-md-2 order-first">
+                <a href="{{ route('orders.nota', $order->id) }}" target="_blank" class="btn btn-primary float-start float-lg-end">
+                    <i class="bi bi-printer"></i>
+                    Cetak Nota
                 </a>
-            </div> --}}
+            </div>
         </div>
     </div>
     <section class="section">

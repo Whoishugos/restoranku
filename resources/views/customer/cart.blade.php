@@ -17,6 +17,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
         @if (empty($cart))
             <h4 class="text-center">Keranjang anda kosong</h4>
         @else
@@ -36,10 +42,13 @@
                     @php
                         $subTotal = 0;
                     @endphp
-                    @foreach ($cart as $item)
+                    @foreach ($cart as $lineKey => $item)
                         @php
-                            $itemTotal = $item['price'] * $item['qty'];
+                            $cartKey = $item['key'] ?? $lineKey;
+                            $itemTotal = \App\Support\CartLine::lineTotal($item);
+                            $unitPrice = \App\Support\CartLine::unitPrice($item);
                             $subTotal += $itemTotal;
+                            $addonLabel = \App\Support\CartLine::addonNames($item);
                         @endphp
                     <tr>
                         <th scope="row">
@@ -49,30 +58,35 @@
                         </th>
                         <td>
                             <p class="mb-0 mt-4">{{ $item['name'] }}</p>
+                            @foreach ($item['addons'] ?? [] as $addon)
+                                <span class="badge {{ \App\Models\AddonGroup::typeBadgeClass($addon['type'] ?? '') }} me-1">
+                                    {{ $addon['type_label'] ?? 'Add-on' }}: {{ $addon['name'] }}
+                                </span>
+                            @endforeach
                         </td>
                         <td>
-                            <p class="mb-0 mt-4">{{ 'Rp'. number_format($item['price'], 0, ',','.') }}</p>
+                            <p class="mb-0 mt-4">{{ 'Rp'. number_format($unitPrice, 0, ',','.') }}</p>
                         </td>
                         <td>
                             <div class="input-group quantity mt-4" style="width: 100px;">
                                 <div class="input-group-btn">
-                                    <button class="btn btn-sm btn-minus rounded-circle bg-light border" onclick="updateQuantity('{{ $item['id'] }}', -1)">
+                                    <button class="btn btn-sm btn-minus rounded-circle bg-light border" onclick="updateQuantity('{{ $cartKey }}', -1)">
                                         <i class="fa fa-minus"></i>
                                     </button>
                                 </div>
-                                <input id="qty-{{ $item['id'] }}" type="text" class="form-control form-control-sm text-center border-0 bg-transparent" value="{{ $item['qty'] }}" readonly>
+                                <input id="qty-{{ $cartKey }}" type="text" class="form-control form-control-sm text-center border-0 bg-transparent" value="{{ $item['qty'] }}" readonly>
                                 <div class="input-group-btn">
-                                    <button class="btn btn-sm btn-plus rounded-circle bg-light border" onclick="updateQuantity('{{ $item['id'] }}', 1)">
+                                    <button class="btn btn-sm btn-plus rounded-circle bg-light border" onclick="updateQuantity('{{ $cartKey }}', 1)">
                                         <i class="fa fa-plus"></i>
                                     </button>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <p class="mb-0 mt-4">{{ 'Rp'. number_format($item['price'] * $item['qty'], 0, ',','.') }}</p>
+                            <p class="mb-0 mt-4">{{ 'Rp'. number_format($itemTotal, 0, ',','.') }}</p>
                         </td>
                         <td>
-                            <button class="btn btn-md rounded-circle bg-light border mt-4" onclick="if(confirm('Apakah anda yakin ingin menghapus item ini?')) { removeItemFromCart('{{ $item['id'] }}') }">
+                            <button class="btn btn-md rounded-circle bg-light border mt-4" onclick="if(confirm('Apakah anda yakin ingin menghapus item ini?')) { removeItemFromCart('{{ $cartKey }}') }">
                                 <i class="fa fa-times text-danger"></i>
                             </button>
                         </td>
@@ -149,6 +163,35 @@
             .catch((error) => {
                 console.error('Error:', error);
                 alert('Terjadi kesalahan saat mengupdate keranjang');
+            });
+        }
+
+        function saveAddons(itemId) {
+            var boxes = document.querySelectorAll('.addon-input[data-item-id="' + itemId + '"]:checked');
+            var addonIds = Array.from(boxes).map(function (box) {
+                return parseInt(box.value, 10);
+            });
+
+            fetch("{{ route('cart.addons') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ id: itemId, addon_ids: addonIds })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Gagal menyimpan add-ons');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat menyimpan add-ons');
             });
         }
 

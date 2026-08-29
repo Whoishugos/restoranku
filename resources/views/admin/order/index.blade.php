@@ -14,6 +14,20 @@
                 <h3>Daftar Pesanan</h3>
                 <p class="text-subtitle text-muted">Kasir dan koki dapat mengubah status: proses, sedang dimasak, siap disajikan</p>
             </div>
+            @if ($canExportReport)
+            <div class="col-12 col-md-6 order-md-2 order-first">
+                <form action="{{ route('orders.exportExcel') }}" method="GET" class="d-flex gap-2 float-start float-lg-end mb-3">
+                    <select name="month" class="form-select" required>
+                        @foreach ($reportMonths as $value => $label)
+                            <option value="{{ $value }}" @selected($value === $selectedMonth)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="btn btn-success text-nowrap">
+                        <i class="bi bi-file-earmark-excel"></i> Unduh Excel
+                    </button>
+                </form>
+            </div>
+            @endif
         </div>
     </div>
     <section class="section">
@@ -51,7 +65,13 @@
                         @foreach ($orders as $order)
                         <tr>
                             <td>{{ $loop->iteration }}</td>
-                            <td>{{ $order->order_code }}</td>
+                            <td>
+                                <div class="fw-semibold">{{ $order->order_code }}</div>
+                                @foreach ($order->orderItems as $orderItem)
+                                    <div class="small text-muted">{{ $orderItem->item->name ?? 'Menu' }} x{{ $orderItem->quantity }}</div>
+                                    @include('admin.order._kds_addons', ['addons' => $orderItem->addons ?? []])
+                                @endforeach
+                            </td>
                             <td>{{ $order->user->fullname ?? '-' }}</td>
                             <td>{{ 'Rp'. number_format($order->grand_total, 0, ',', '.') }}</td>
                             <td>

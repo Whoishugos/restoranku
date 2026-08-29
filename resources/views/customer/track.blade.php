@@ -34,7 +34,10 @@
                     <tbody>
                         @foreach ($orderItems as $orderItem)
                             <tr>
-                                <td>{{ $orderItem->item->name ?? 'Menu' }} × {{ $orderItem->quantity }}</td>
+                            <td>
+                                {{ $orderItem->item->name ?? 'Menu dihapus' }} × {{ $orderItem->quantity }}
+                                @include('admin.order._kds_addons', ['addons' => $orderItem->addons ?? []])
+                            </td>
                                 <td class="text-end">{{ 'Rp'. number_format($orderItem->price, 0, ',', '.') }}</td>
                             </tr>
                         @endforeach

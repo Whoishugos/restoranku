@@ -82,16 +82,21 @@
                     <tbody>
                         @foreach ($orderItems as $menu)
                         <tr>
-
                             <td>{{ $loop->iteration }}</td>
                             <td>
-                                <img src="{{ asset('img_item_upload/'. $menu->item->img) }}" width="60" class="img-fluid rounded-top" alt="" onerror="this.onerror=null;this.src='{{  $menu->item->img }}';">
+                                @if ($menu->item?->img)
+                                    <img src="{{ asset('img_item_upload/'. $menu->item->img) }}" width="60" class="img-fluid rounded-top" alt="" onerror="this.onerror=null;this.src='{{ $menu->item->img }}';">
+                                @else
+                                    <span class="text-muted small">Tidak ada gambar</span>
+                                @endif
                             </td>
-                            <td>{{ $menu->item->name }}</td>
+                            <td>
+                                <div class="fw-semibold">{{ $menu->item->name ?? 'Menu dihapus' }}</div>
+                                @include('admin.order._kds_addons', ['addons' => $menu->addons ?? []])
+                            </td>
                             <td>{{ $menu->quantity }}</td>
-                            <td>{{ 'Rp'. number_format($menu->item->price, 0, ',','.') }}</td>
+                            <td>{{ 'Rp'. number_format($menu->price ?? $menu->item?->price ?? 0, 0, ',','.') }}</td>
                         </tr>
-
                         @endforeach
                     </tbody>
 

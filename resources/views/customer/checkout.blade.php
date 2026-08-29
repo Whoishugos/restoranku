@@ -69,7 +69,9 @@
                                     @endphp
                                     @foreach (session('cart') as $item)
                                         @php
-                                            $itemTotal = $item['price'] * $item['qty'];
+                                            $itemTotal = \App\Support\CartLine::lineTotal($item);
+                                            $unitPrice = \App\Support\CartLine::unitPrice($item);
+                                            $addonLabel = \App\Support\CartLine::addonNames($item);
                                             $subTotal += $itemTotal;
                                         @endphp
                                     <tr>
@@ -78,10 +80,17 @@
                                                 <img src="{{ asset('img_item_upload/'. $item['image']) }}" class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px;" alt="" onerror="this.onerror=null;this.src='{{  $item['image'] }}';">
                                             </div>
                                         </th>
-                                        <td class="py-5">{{ $item['name'] }}</td>
-                                        <td class="py-5">{{ 'Rp'. number_format($item['price'], 0, ',','.') }}</td>
+                                        <td class="py-5">
+                                            {{ $item['name'] }}
+                                            @foreach ($item['addons'] ?? [] as $addon)
+                                                <div class="small">
+                                                    <span class="badge {{ \App\Models\AddonGroup::typeBadgeClass($addon['type'] ?? '') }}">{{ $addon['type_label'] ?? 'Add-on' }}: {{ $addon['name'] }}</span>
+                                                </div>
+                                            @endforeach
+                                        </td>
+                                        <td class="py-5">{{ 'Rp'. number_format($unitPrice, 0, ',','.') }}</td>
                                         <td class="py-5">{{ $item['qty'] }}</td>
-                                        <td class="py-5">{{ 'Rp'. number_format($item['price'] * $item['qty'], 0, ',','.') }}</td>
+                                        <td class="py-5">{{ 'Rp'. number_format($itemTotal, 0, ',','.') }}</td>
                                     </tr>
                                     @endforeach
                                 </tbody>

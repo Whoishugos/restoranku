@@ -3,7 +3,7 @@
 
     <head>
         <meta charset="utf-8">
-        <title>Restoranku</title>
+        <title>Restoran Kekupu Villa Jembrana</title>
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
         <meta content="" name="keywords">
         <meta content="" name="description">
@@ -28,5 +28,5 @@
         <!-- Template Stylesheet -->
         <link href="{{ asset('assets/customer/css/style.css') }}" rel="stylesheet">
 
-        <link rel="icon" href="https://apps.codepolitan.com/sites/learn/uploads/original/2/logo-codepolitan-originals.png" type="image/x-icon">
+        <link rel="icon" href="{{ asset('img/logo-kekupu.png') }}" type="image/png">
     </head>

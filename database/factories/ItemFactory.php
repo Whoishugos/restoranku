@@ -17,6 +17,7 @@ class ItemFactory extends Factory
         'description' => $this->faker->sentence,
         'img' => $this->faker->imageUrl(),
         'is_active' => $this->faker->boolean,
+        'stock' => 50,
         ];
     }
 }

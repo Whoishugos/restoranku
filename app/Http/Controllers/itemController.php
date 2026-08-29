@@ -41,6 +41,7 @@ class ItemController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
             'img' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_active' => 'required|boolean',
@@ -101,6 +102,7 @@ class ItemController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
             'img' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_active' => 'required|boolean',
@@ -137,12 +139,10 @@ class ItemController extends Controller
      */
     public function destroy(string $id)
     {
-        // Find the item and delete it
         $item = Item::findOrFail($id);
         $item->delete();
 
-        // Redirect to the items index with a success message
-        return redirect()->route('items.index')->with('success', 'Item deleted successfully.');
+        return redirect()->route('items.index')->with('success', 'Menu berhasil dihapus.');
     }
 
     public function updateStatus($id)

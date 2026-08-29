@@ -41,6 +41,11 @@
                             <label for="price">Harga</label>
                             <input type="number" class="form-control" id="price" placeholder="Masukkan Harga" name="price" required value="{{ $item->price }}">
                         </div>
+                        <div class="form-group">
+                            <label for="stock">Stok gudang</label>
+                            <input type="number" class="form-control" id="stock" name="stock" min="0" required value="{{ $item->stock }}">
+                            <small class="text-muted">Jika stok 0, menu otomatis disembunyikan dari pelanggan.</small>
+                        </div>
 
                         <div class="form-group">
                             <label for="category">Kategori</label>

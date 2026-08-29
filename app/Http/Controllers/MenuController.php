@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Addon;
 use App\Models\Item;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\AddonCatalog;
 use App\Services\MidtransService;
+use App\Support\CartLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
@@ -21,10 +24,12 @@ class MenuController extends Controller
     {
         $this->captureTableNumber($request->query('meja'));
 
-        $items = Item::where('is_active', 1)->orderBy('name', 'asc')->get();
+        $items = Item::with('category')->available()->orderBy('name', 'asc')->get();
+        $foods = $items->filter(fn (Item $item) => strcasecmp((string) $item->category?->cat_name, 'Makanan') === 0)->values();
+        $drinks = $items->filter(fn (Item $item) => strcasecmp((string) $item->category?->cat_name, 'Minuman') === 0)->values();
         $tableNumber = Session::get('tableNumber');
 
-        return view('customer.menu', compact('items', 'tableNumber'));
+        return view('customer.menu', compact('foods', 'drinks', 'tableNumber'));
     }
 
     public function scanTable(int $tableNumber)
@@ -38,35 +43,61 @@ class MenuController extends Controller
 
     public function cart()
     {
-        $cart = Session::get('cart');
+        $cart = Session::get('cart', []);
         $tableNumber = Session::get('tableNumber');
 
         return view('customer.cart', compact('cart', 'tableNumber'));
     }
 
-    public function addToCart(Request $request)
+    public function customize(Item $item, AddonCatalog $catalog)
     {
-        $menuId = $request->input('id');
-        $menu = Item::find($menuId);
-
-        if (! $menu) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Menu tidak ditemukan',
-            ]);
+        if (! $item->isAvailable()) {
+            return response()->json(['status' => 'error', 'message' => 'Menu sedang habis.'], 422);
         }
 
+        return response()->json([
+            'status' => 'success',
+            'data' => $catalog->payloadForItem($item),
+        ]);
+    }
+
+    public function addToCart(Request $request, AddonCatalog $catalog)
+    {
+        $menuId = $request->input('id');
+        $menu = Item::with('category')->find($menuId);
+
+        if (! $menu || ! $menu->isAvailable()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Menu tidak tersedia atau stok habis.',
+            ], 422);
+        }
+
+        try {
+            $addons = $catalog->validateAndSnapshot($menu, $request->input('addon_ids', []));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->validator->errors()->first(),
+            ], 422);
+        }
+
+        $addonIds = collect($addons)->pluck('id')->sort()->values()->all();
+        $lineKey = $menu->id.':'.md5(json_encode($addonIds));
         $cart = Session::get('cart', []);
 
-        if (isset($cart[$menuId])) {
-            $cart[$menuId]['qty'] += 1;
+        if (isset($cart[$lineKey])) {
+            $cart[$lineKey]['qty'] += 1;
         } else {
-            $cart[$menuId] = [
+            $cart[$lineKey] = [
+                'key' => $lineKey,
                 'id' => $menu->id,
                 'name' => $menu->name,
-                'price' => $menu->price,
+                'price' => (int) $menu->price,
                 'image' => $menu->img,
+                'category' => $menu->category?->cat_name,
                 'qty' => 1,
+                'addons' => $addons,
             ];
         }
 
@@ -124,6 +155,38 @@ class MenuController extends Controller
         }
 
         return response()->json(['success' => false]);
+    }
+
+    public function updateAddons(Request $request)
+    {
+        $itemId = $request->input('id');
+        $addonIds = collect($request->input('addon_ids', []))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $cart = Session::get('cart', []);
+
+        if (! isset($cart[$itemId])) {
+            return response()->json(['success' => false, 'message' => 'Item tidak ditemukan']);
+        }
+
+        if (! CartLine::isFood($cart[$itemId])) {
+            return response()->json(['success' => false, 'message' => 'Add-ons hanya untuk makanan']);
+        }
+
+        $addons = Addon::where('is_active', 1)->whereIn('id', $addonIds)->get();
+
+        $cart[$itemId]['addons'] = $addons->map(fn (Addon $addon) => [
+            'id' => $addon->id,
+            'name' => $addon->name,
+            'price' => (int) $addon->price,
+        ])->values()->all();
+
+        Session::put('cart', $cart);
+
+        return response()->json(['success' => true]);
     }
 
     public function clearCart()
@@ -191,17 +254,34 @@ class MenuController extends Controller
         $totalAmount = 0;
         $itemDetails = [];
         foreach ($cart as $item) {
-            $totalAmount += $item['qty'] * $item['price'];
+            $unitPrice = CartLine::unitPrice($item);
+            $lineTotal = CartLine::lineTotal($item);
+            $totalAmount += $lineTotal;
+            $addonLabel = CartLine::addonNames($item);
+            $itemName = $item['name'].($addonLabel !== '' ? ' + '.$addonLabel : '');
             $itemDetails[] = [
                 'id' => (string) $item['id'],
-                'price' => (int) $item['price'],
+                'price' => $unitPrice,
                 'quantity' => (int) $item['qty'],
-                'name' => substr($item['name'], 0, 50),
+                'name' => substr($itemName, 0, 50),
             ];
         }
 
         $tax = (int) round(0.1 * $totalAmount);
         $grandTotal = $totalAmount + $tax;
+
+        foreach ($cart as $item) {
+            $menu = Item::find($item['id']);
+            $qty = (int) $item['qty'];
+            if (! $menu || $menu->stock < $qty) {
+                $message = 'Stok habis untuk '.($item['name'] ?? 'menu').'. Menu disembunyikan jika gudang kosong.';
+                if ($wantsJson) {
+                    return response()->json(['status' => 'error', 'message' => $message], 422);
+                }
+
+                return redirect()->route('cart')->with('error', $message);
+            }
+        }
 
         $itemDetails[] = [
             'id' => 'TAX',
@@ -245,13 +325,29 @@ class MenuController extends Controller
         $this->rememberCustomerOrder($order->order_code);
 
         foreach ($cart as $item) {
+            $lineTotal = CartLine::lineTotal($item);
+            $taxLine = (int) round(0.1 * $lineTotal);
+            $qty = (int) $item['qty'];
+            $menu = Item::find($item['id']);
+            if ($menu) {
+                $menu->decrement('stock', $qty);
+            }
+
+            foreach ($item['addons'] ?? [] as $addonData) {
+                $addon = Addon::find($addonData['id'] ?? 0);
+                if ($addon && $addon->stock > 0) {
+                    $addon->decrement('stock', min($addon->stock, $qty));
+                }
+            }
+
             OrderItem::create([
                 'order_id' => $order->id,
                 'item_id' => $item['id'],
-                'quantity' => $item['qty'],
-                'price' => $item['price'] * $item['qty'],
-                'tax' => (int) round(0.1 * $item['price'] * $item['qty']),
-                'total_price' => ($item['price'] * $item['qty']) + (int) round(0.1 * $item['price'] * $item['qty']),
+                'quantity' => $qty,
+                'price' => $lineTotal,
+                'tax' => $taxLine,
+                'total_price' => $lineTotal + $taxLine,
+                'addons' => array_values($item['addons'] ?? []),
             ]);
         }
 

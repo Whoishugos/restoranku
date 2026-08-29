@@ -56,11 +56,19 @@
                     </a>
                 </li>
 
-                @if (Auth::user()?->role?->role_name === 'admin')
+                @if (in_array(Auth::user()?->role?->role_name, ['admin', 'cashier'], true))
                 <li class="sidebar-item {{ request()->routeIs('items.*') ? 'active' : '' }}">
                     <a href="{{ route('items.index') }}" class='sidebar-link'>
                         <i class="bi bi-file-earmark-text-fill"></i>
                         <span>Daftar Menu</span>
+                    </a>
+                </li>
+                @endif
+                @if (Auth::user()?->role?->role_name === 'admin')
+                <li class="sidebar-item {{ request()->routeIs('addon-groups.*') || request()->routeIs('addons.*') ? 'active' : '' }}">
+                    <a href="{{ route('addon-groups.index') }}" class='sidebar-link'>
+                        <i class="bi bi-plus-square-fill"></i>
+                        <span>Manajemen Add-ons</span>
                     </a>
                 </li>
                 <li class="sidebar-item {{ request()->routeIs('users.*') ? 'active' : '' }}">

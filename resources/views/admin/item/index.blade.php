@@ -7,6 +7,9 @@
 @endsection
 
 @section('content')
+@php
+    $isAdmin = Auth::user()?->role?->role_name === 'admin';
+@endphp
 <div class="page-heading">
     <div class="page-title">
         <div class="row">
@@ -14,12 +17,14 @@
                 <h3>Daftar Menu</h3>
                 <p class="text-subtitle text-muted">Berbagai pilihan menu terbaik</p>
             </div>
+            @if ($isAdmin)
             <div class="col-12 col-md-6 order-md-2 order-first">
                 <a href="{{ route('items.create') }}" class="btn btn-primary float-start float-lg-end">
                     <i class="bi bi-plus"></i>
                     Tambah Menu
                 </a>
             </div>
+            @endif
         </div>
     </div>
     <section class="section">
@@ -39,9 +44,10 @@
                             <th>Nama Item</th>
                             <th>Deskripsi</th>
                             <th>Harga</th>
+                            <th>Stok</th>
                             <th>Kategori</th>
                             <th>Status</th>
-                            <th colspan="2">Aksi</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -54,6 +60,7 @@
                             <td>{{ $item->name }}</td>
                             <td>{{ Str::limit($item->description,15) }}</td>
                             <td>{{ 'Rp'. number_format($item->price, 0, ',','.') }}</td>
+                            <td>{{ $item->stock }}</td>
                             <td>
                                 <span class="badge {{ $item->category->cat_name == 'Makanan' ? 'bg-warning' : 'bg-info' }}">
                                     {{ $item->category->cat_name }}
@@ -65,28 +72,37 @@
                                 </span>
                             </td>
                             <td>
-                                <a href="{{ route('items.edit', $item->id) }}" class="btn btn-warning btn-sm">
-                                    <i class="bi bi-pencil"></i> Ubah
-                                </a>
-                            </td>
-                            <td>
-                                @if ($item->is_active == 1)
-                                    <form action="{{ route('items.updateStatus', $item->id) }}" method="POST">
+                                <div class="d-flex flex-wrap gap-1">
+                                    @if ($isAdmin)
+                                    <a href="{{ route('items.edit', $item->id) }}" class="btn btn-warning btn-sm">
+                                        <i class="bi bi-pencil"></i> Ubah
+                                    </a>
+                                    @if ($item->is_active == 1)
+                                        <form action="{{ route('items.updateStatus', $item->id) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="is_active" value="0">
+                                            <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm('Apakah anda yakin ingin menonaktifkan menu ini?')">
+                                                <i class="bi bi-x"></i> Nonaktifkan
+                                            </button>
+                                        </form>
+                                    @else
+                                        <form action="{{ route('items.updateStatus', $item->id) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="is_active" value="1">
+                                            <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Apakah anda yakin ingin mengaktifkan menu ini?')">
+                                                <i class="bi bi-check"></i> Aktifkan
+                                            </button>
+                                        </form>
+                                    @endif
+                                    @endif
+                                    <form action="{{ route('items.destroy', $item->id) }}" method="POST">
                                         @csrf
-                                        <input type="hidden" name="is_active" value="0">
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah anda yakin ingin menonaktifkan menu ini?')">
-                                            <i class="bi bi-x"></i> Nonaktifkan
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah anda yakin ingin menghapus menu ini?')">
+                                            <i class="bi bi-trash"></i> Hapus
                                         </button>
                                     </form>
-                                @else
-                                    <form action="{{ route('items.updateStatus', $item->id) }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="is_active" value="1">
-                                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Apakah anda yakin ingin mengaktifkan menu ini?')">
-                                            <i class="bi bi-check"></i> Aktifkan
-                                        </button>
-                                    </form>
-                                @endif
+                                </div>
                             </td>
                         </tr>
 

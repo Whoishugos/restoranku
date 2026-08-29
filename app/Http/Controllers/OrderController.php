@@ -3,18 +3,40 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Models\OrderItem;
+use App\Services\MonthlyOrderExcelExporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
-    public function index()
+    public function index(MonthlyOrderExcelExporter $exporter)
     {
-        $orders = Order::with('user')->latest()->get();
+        $orders = Order::with(['user', 'orderItems.item'])->latest()->get();
         $kitchenStatuses = Order::kitchenStatusOptions();
+        $reportMonths = $exporter->monthOptions();
+        $selectedMonth = now()->format('Y-m');
+        $canExportReport = in_array(Auth::user()->role->role_name ?? '', ['admin', 'cashier'], true);
 
-        return view('admin.order.index', compact('orders', 'kitchenStatuses'));
+        return view('admin.order.index', compact(
+            'orders',
+            'kitchenStatuses',
+            'reportMonths',
+            'selectedMonth',
+            'canExportReport'
+        ));
+    }
+
+    public function exportExcel(Request $request, MonthlyOrderExcelExporter $exporter)
+    {
+        if (! in_array(Auth::user()->role->role_name ?? '', ['admin', 'cashier'], true)) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'month' => ['required', 'date_format:Y-m'],
+        ]);
+
+        return $exporter->download($validated['month']);
     }
 
     public function show($id)

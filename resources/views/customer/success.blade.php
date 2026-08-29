@@ -16,7 +16,11 @@
             <tbody>
                 @foreach ($orderItems as $orderItem)
                     <tr>
-                        <td>{{ Str::limit($orderItem->item->name, 25)}} ({{ $orderItem->quantity }})</td>
+                        <td>{{ Str::limit($orderItem->item->name ?? 'Menu dihapus', 25)}} ({{ $orderItem->quantity }})
+                            @if ($orderItem->addonLabel() !== '')
+                                <div class="small text-muted">+ {{ $orderItem->addonLabel() }}</div>
+                            @endif
+                        </td>
                         <td class="text-end">{{ 'Rp'. number_format($orderItem->price, 0, ',','.') }}</td>
                     </tr>
                 @endforeach

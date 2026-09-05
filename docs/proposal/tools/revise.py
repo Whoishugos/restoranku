@@ -12,6 +12,7 @@ import bab1
 import bab2
 import bab3a
 import bab3b
+import lampiran
 from docxtools import Doc
 
 DEFAULT_SRC = "proposal_fixed5.docx"
@@ -28,6 +29,7 @@ bab1.apply(D)
 bab2.apply(D, TBL)
 bab3a.apply(D, TBL)
 bab3b.apply(D, TBL)
+lampiran.apply(D, TBL)
 
 document.save(out)
 print(f"saved {out} with {len(D.changes)} edit operations")

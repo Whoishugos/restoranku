@@ -109,6 +109,41 @@ class Doc:
         self.changes.append(label or f"clone P{src_idx:04d} before P{dst_idx:04d}")
         return clone
 
+    # ---------- append at end of document (before sectPr) ----------
+
+    def _append_el(self, el):
+        sect = self.body.find(qn("w:sectPr"))
+        if sect is not None:
+            sect.addprevious(el)
+        else:
+            self.body.append(el)
+        return el
+
+    def append_para(self, tmpl_idx, text, page_break=False, label=None):
+        el = copy.deepcopy(self.p(tmpl_idx)._p)
+        _strip_ids(el)
+        newp = Paragraph(el, self.p(tmpl_idx)._parent)
+        _set_para_text(newp, text)
+        if page_break:
+            pPr = el.find(qn("w:pPr"))
+            if pPr is None:
+                pPr = el.makeelement(qn("w:pPr"), {})
+                el.insert(0, pPr)
+            pbb = pPr.find(qn("w:pageBreakBefore"))
+            if pbb is None:
+                pbb = pPr.makeelement(qn("w:pageBreakBefore"), {})
+                pPr.insert(0, pbb)
+            pbb.set(qn("w:val"), "1")
+        self._append_el(el)
+        self.changes.append(label or f"append para: {text[:40]!r}")
+        return el
+
+    def append_table(self, template, widths, rows, header=True, label=None):
+        tbl = _build_table(template, widths, rows, header)
+        self._append_el(tbl)
+        self.changes.append(label or "append table")
+        return tbl
+
     def drop_blanks_after(self, idx, max_n=20, label=None):
         """Remove consecutive empty paragraphs (no text, no image) following idx."""
         removed = 0

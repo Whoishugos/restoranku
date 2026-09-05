@@ -224,18 +224,18 @@ def apply(D, TBL):
 
     # ------------------------------------------------------------------ A.5
     H("A.5 Hal yang Masih Perlu Dikerjakan pada Gambar")
-    P("Perubahan teks, tabel, dan penomoran telah selesai. Tiga hal berikut menyangkut "
-      "isi gambar sehingga tidak dapat diselesaikan dari naskah:")
-    F("1. Gambar 3.3 Use Case Diagram perlu dilengkapi. Gambar yang tersedia sudah benar "
-      "dari sisi aktor, yaitu Admin, Koki, Kasir, dan Pelanggan tanpa Staf Pelayan, "
-      "tetapi belum memuat seluruh use case pada Tabel 3.16. Use case yang perlu "
-      "ditambahkan adalah: kelola kategori, kelola karyawan, kelola role/hak akses, "
-      "kelola ketersediaan/stok menu, lihat riwayat pesanan, dan bangkitkan QR meja "
-      "untuk Admin; lihat antrean pesanan untuk Koki; lihat daftar pesanan menunggu "
-      "pembayaran dan pantau status pembayaran Midtrans untuk Kasir; serta pilih add-on "
-      "dan bayar pesanan secara tunai maupun non-tunai melalui Midtrans Snap untuk "
-      "Pelanggan. Garis relasi Admin, Koki, dan Kasir sebaiknya juga dipisah per aktor "
-      "agar mudah dibaca.")
+    P("Gambar 3.3 telah digambar ulang. Dua hal berikut masih menyangkut isi gambar DFD "
+      "dan salinan diagram di BAB II:")
+    F("1. Gambar 3.3 Use Case Diagram telah digambar ulang. Pemetaan aktor yang "
+      "sebelumnya tertukar — garis Koki menuju konfirmasi bayar tunai dan garis Kasir "
+      "menuju update status dapur — sudah diperbaiki. Koki kini hanya terhubung ke "
+      "lihat antrean pesanan dapur, update status dapur, dan login staf. Kasir kini "
+      "hanya terhubung ke lihat daftar pembayaran, konfirmasi bayar tunai, pantau "
+      "pembayaran Midtrans, cetak nota, dan login staf. Use case yang sebelumnya "
+      "hilang (kelola kategori/stok/add-on, kelola karyawan dan role, bangkitkan QR "
+      "meja, pilih add-on, bayar pesanan, lacak status) juga sudah ditambahkan. "
+      "Kelompok Koki diberi pita hijau dan kelompok Kasir diberi pita oranye agar "
+      "pemetaan tidak dapat disalahbaca.")
     F("2. Judul yang tercetak di dalam ketiga gambar DFD masih berbunyi Gambar 3.8, "
       "Gambar 3.9, dan Gambar 3.10, sedangkan caption pada dokumen kini Gambar 3.9, "
       "Gambar 3.10, dan Gambar 3.11 karena Use Case Diagram masuk sebagai Gambar 3.3. "

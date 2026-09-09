@@ -561,3 +561,267 @@
 }
 /*** Footer End ***/
 
+/*** Mobile app / phone layout ***/
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body.customer-app {
+    overflow-x: hidden;
+}
+
+.table-chip {
+    font-size: 0.78rem;
+    padding: 0.45rem 0.7rem;
+}
+
+.cart-icon-link {
+    color: inherit;
+}
+
+.cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -10px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--bs-secondary);
+    color: #212529;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-card-badge {
+    top: 10px;
+    left: 10px;
+}
+
+.progress-track {
+    height: 4px;
+    background: #e9ecef;
+    z-index: 0;
+}
+
+.progress-track-fill {
+    height: 4px;
+    background: #81c408;
+    z-index: 0;
+    max-width: calc(100% - 3rem);
+}
+
+.progress-step {
+    z-index: 1;
+    width: 25%;
+}
+
+.progress-step-icon {
+    width: 48px;
+    height: 48px;
+}
+
+.customer-bottom-nav {
+    display: none;
+}
+
+.pwa-install-banner {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    z-index: 1040;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pwa-install-copy {
+    flex: 1;
+    min-width: 0;
+}
+
+.pwa-install-banner[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 1199.98px) {
+    body.customer-app {
+        padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .navbar {
+        height: auto;
+        min-height: 72px;
+        padding: 8px 12px;
+    }
+
+    .navbar .brand-logo {
+        width: 44px;
+        height: 44px;
+    }
+
+    .navbar .brand-title {
+        font-size: 0.72rem;
+    }
+
+    .navbar .brand-subtitle {
+        font-size: 0.6rem;
+    }
+
+    .navbar .brand-lockup {
+        max-width: min(46vw, 220px);
+    }
+
+    .hero-header,
+    .page-header {
+        margin-top: 72px !important;
+        padding-top: 2.5rem !important;
+        padding-bottom: 2.5rem !important;
+    }
+
+    .page-header h1,
+    .page-header .display-6 {
+        font-size: 1.75rem;
+    }
+
+    .customer-main .container.py-5,
+    .customer-main .container-fluid.py-5,
+    .customer-main .fruite.py-5,
+    .customer-main .container-fluid.fruite.py-5 {
+        padding-top: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
+    }
+
+    .fruite .fruite-item .fruite-img {
+        height: 14rem;
+    }
+
+    .customer-bottom-nav {
+        display: flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1030;
+        background: #fff;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+        justify-content: space-around;
+    }
+
+    .customer-bottom-nav a {
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: #45595B;
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 6px 0;
+        min-height: 48px;
+    }
+
+    .customer-bottom-nav a i {
+        font-size: 1.15rem;
+    }
+
+    .customer-bottom-nav a.active {
+        color: var(--bs-primary);
+    }
+
+    .bottom-cart-badge {
+        right: calc(50% - 28px);
+        top: 0;
+    }
+
+    .back-to-top {
+        right: 16px;
+        bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .customer-footer {
+        padding-bottom: 1.5rem !important;
+        margin-top: 2rem !important;
+    }
+
+    .progress-step-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+    }
+
+    .progress-step-label {
+        font-size: 0.7rem;
+    }
+
+    h1.mb-4,
+    h2.display-6,
+    h3.display-6 {
+        font-size: 1.5rem !important;
+    }
+
+    .btn,
+    .form-control,
+    .form-select {
+        min-height: 44px;
+    }
+
+    .input-group .btn {
+        min-height: 36px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .menu-card {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        overflow: hidden;
+    }
+
+    .menu-card .menu-card-img,
+    .fruite .fruite-item.menu-card .fruite-img {
+        width: 112px;
+        min-width: 112px;
+        height: 112px;
+        border-radius: 10px 0 0 10px;
+    }
+
+    .menu-card .menu-card-body {
+        border-top: 1px solid var(--bs-secondary) !important;
+        border-left: 0 !important;
+        border-radius: 0 10px 10px 0 !important;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .menu-card-title {
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .menu-card-badge {
+        top: 6px;
+        left: 6px;
+        font-size: 0.7rem;
+        padding: 0.15rem 0.45rem !important;
+    }
+
+    .footer .d-flex.justify-content-end {
+        justify-content: flex-start !important;
+    }
+}
+/*** Mobile app end ***/
+

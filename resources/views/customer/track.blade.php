@@ -49,8 +49,10 @@
                 </table>
 
                 <p class="small text-muted mb-3">Halaman ini diperbarui otomatis saat kasir atau koki mengubah status.</p>
-                <a href="{{ route('customer.orders') }}" class="btn btn-outline-secondary">Semua pesanan</a>
-                <a href="{{ route('menu') }}" class="btn btn-primary">Kembali ke menu</a>
+                <div class="d-grid gap-2 d-md-flex">
+                    <a href="{{ route('customer.orders') }}" class="btn btn-outline-secondary">Semua pesanan</a>
+                    <a href="{{ route('menu') }}" class="btn btn-primary">Kembali ke menu</a>
+                </div>
             </div>
         </div>
     </div>

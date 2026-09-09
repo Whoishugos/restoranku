@@ -36,6 +36,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
+                <div class="table-responsive">
                 <table class="table table-striped" id="table1">
                     <thead>
                         <tr>
@@ -109,6 +110,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
 

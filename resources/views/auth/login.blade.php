@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#435ebe">
     <title>Login - {{ config('app.name') }}</title>
     <link rel="stylesheet" crossorigin="" href="{{ asset('assets/admin/compiled/css/app.css') }}">
     <link rel="stylesheet" crossorigin="" href="{{ asset('assets/admin/compiled/css/app-dark.css') }}">
     <link rel="stylesheet" crossorigin="" href="{{ asset('assets/admin/compiled/css/auth.css') }}">
-    <link rel="icon" href="https://apps.codepolitan.com/sites/learn/uploads/original/2/logo-codepolitan-originals.png" type="image/x-icon">
+    <link rel="icon" href="{{ asset('icons/icon-192.png') }}" type="image/png">
 </head>
 
 <body>

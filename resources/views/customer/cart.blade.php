@@ -26,7 +26,54 @@
         @if (empty($cart))
             <h4 class="text-center">Keranjang anda kosong</h4>
         @else
-        <div class="table-responsive">
+        @php
+            $subTotal = collect($cart)->sum(fn ($item) => \App\Support\CartLine::lineTotal($item));
+        @endphp
+        <div class="cart-list d-md-none">
+            @foreach ($cart as $lineKey => $item)
+                @php
+                    $cartKey = $item['key'] ?? $lineKey;
+                    $itemTotal = \App\Support\CartLine::lineTotal($item);
+                    $unitPrice = \App\Support\CartLine::unitPrice($item);
+                @endphp
+                <div class="cart-card border rounded p-3 mb-3">
+                    <div class="d-flex gap-3">
+                        <img src="{{ asset('img_item_upload/'. $item['image']) }}" class="rounded" style="width: 72px; height: 72px; object-fit: cover;" alt="" onerror="this.onerror=null;this.src='{{  $item['image'] }}';">
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="d-flex justify-content-between gap-2">
+                                <p class="fw-semibold mb-1">{{ $item['name'] }}</p>
+                                <button class="btn btn-sm rounded-circle bg-light border" onclick="if(confirm('Apakah anda yakin ingin menghapus item ini?')) { removeItemFromCart('{{ $cartKey }}') }" aria-label="Hapus">
+                                    <i class="fa fa-times text-danger"></i>
+                                </button>
+                            </div>
+                            @foreach ($item['addons'] ?? [] as $addon)
+                                <span class="badge {{ \App\Models\AddonGroup::typeBadgeClass($addon['type'] ?? '') }} me-1 mb-1">
+                                    {{ $addon['type_label'] ?? 'Add-on' }}: {{ $addon['name'] }}
+                                </span>
+                            @endforeach
+                            <div class="small text-muted">{{ 'Rp'. number_format($unitPrice, 0, ',','.') }}</div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <div class="input-group quantity" style="width: 110px;">
+                                    <div class="input-group-btn">
+                                        <button class="btn btn-sm btn-minus rounded-circle bg-light border" onclick="updateQuantity('{{ $cartKey }}', -1)">
+                                            <i class="fa fa-minus"></i>
+                                        </button>
+                                    </div>
+                                    <input id="qty-{{ $cartKey }}" type="text" class="form-control form-control-sm text-center border-0 bg-transparent" value="{{ $item['qty'] }}" readonly>
+                                    <div class="input-group-btn">
+                                        <button class="btn btn-sm btn-plus rounded-circle bg-light border" onclick="updateQuantity('{{ $cartKey }}', 1)">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <strong>{{ 'Rp'. number_format($itemTotal, 0, ',','.') }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+        <div class="table-responsive d-none d-md-block">
             <table class="table">
                 <thead>
                   <tr>
@@ -39,16 +86,11 @@
                   </tr>
                 </thead>
                 <tbody>
-                    @php
-                        $subTotal = 0;
-                    @endphp
                     @foreach ($cart as $lineKey => $item)
                         @php
                             $cartKey = $item['key'] ?? $lineKey;
                             $itemTotal = \App\Support\CartLine::lineTotal($item);
                             $unitPrice = \App\Support\CartLine::unitPrice($item);
-                            $subTotal += $itemTotal;
-                            $addonLabel = \App\Support\CartLine::addonNames($item);
                         @endphp
                     <tr>
                         <th scope="row">
@@ -74,7 +116,7 @@
                                         <i class="fa fa-minus"></i>
                                     </button>
                                 </div>
-                                <input id="qty-{{ $cartKey }}" type="text" class="form-control form-control-sm text-center border-0 bg-transparent" value="{{ $item['qty'] }}" readonly>
+                                <input id="qty-desktop-{{ $cartKey }}" type="text" class="form-control form-control-sm text-center border-0 bg-transparent" value="{{ $item['qty'] }}" readonly>
                                 <div class="input-group-btn">
                                     <button class="btn btn-sm btn-plus rounded-circle bg-light border" onclick="updateQuantity('{{ $cartKey }}', 1)">
                                         <i class="fa fa-plus"></i>
@@ -103,8 +145,7 @@
             <a href="{{ route('cart.clear') }}" class="btn btn-danger" onclick=" return confirm('Apakah Anda yakin ingin mengosongkan keranjang?')">Kosongkan Keranjang</a>
         </div>
         <div class="row g-4 justify-content-end mt-1">
-            <div class="col-8"></div>
-            <div class="col-sm-8 col-md-7 col-lg-6 col-xl-4">
+            <div class="col-12 col-md-7 col-lg-6 col-xl-4">
                 <div class="bg-light rounded">
                     <div class="p-4">
                         <h2 class="display-6 mb-4">Total <span class="fw-normal">Pesanan</span></h2>
@@ -139,7 +180,7 @@
 @section('script')
     <script>
         function updateQuantity(itemId, change) {
-            var qtyInput = document.getElementById('qty-' + itemId);
+            var qtyInput = document.getElementById('qty-' + itemId) || document.getElementById('qty-desktop-' + itemId);
             var currentQty = parseInt(qtyInput.value, 10);
             var newQty = currentQty + change;
 

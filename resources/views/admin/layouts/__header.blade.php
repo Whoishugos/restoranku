@@ -1,18 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    'name' => env('APP_NAME', 'RESTORAN KEKUPU VILLA JEMBRANA'),
-
-    <!-- <link rel="icon" href="https://apps.codepolitan.com/sites/learn/uploads/original/2/logo-codepolitan-originals.png" type="image/x-icon"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>@yield('title', 'Dashboard') — {{ config('app.name') }}</title>
+    <link rel="icon" href="{{ asset('icons/icon-192.png') }}" type="image/png">
 
     <link rel="stylesheet" crossorigin href="{{ asset('assets/admin/compiled/css/app.css') }}">
     <link rel="stylesheet" crossorigin href="{{ asset('assets/admin/compiled/css/app-dark.css') }}">
     <link rel="stylesheet" crossorigin href="{{ asset('assets/admin/compiled/css/iconly.css') }}">
-
-
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/mobile.css') }}">
 
     @yield('css')
 </head>

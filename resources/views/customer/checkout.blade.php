@@ -23,21 +23,22 @@
             <div class="row g-5">
                 <div class="col-md-12 col-lg-6 col-xl-6">
                     <div class="row">
-                        <div class="col-md-12 col-lg-4">                            <div class="form-item w-100">
+                        <div class="col-12 col-lg-4">
+                            <div class="form-item w-100">
                                 <label class="form-label my-3">Nama Lengkap<sup>*</sup></label>
-                                <input type="text" name="fullname" class="form-control" placeholder="Masukka nama Anda" required>
+                                <input type="text" name="fullname" class="form-control" placeholder="Masukkan nama Anda" autocomplete="name" required>
                             </div>
                         </div>
-                        <div class="col-md-12 col-lg-4">
+                        <div class="col-12 col-lg-4">
                             <div class="form-item w-100">
                                 <label class="form-label my-3">Nomor WhatsApp<sup>*</sup></label>
-                                <input type="text" name="phone" class="form-control" placeholder="Masukkan Nomor WhatsApp Anda" required>
+                                <input type="tel" name="phone" class="form-control" placeholder="Masukkan Nomor WhatsApp Anda" inputmode="tel" autocomplete="tel" required>
                             </div>
                         </div>
-                        <div class="col-md-12 col-lg-4">
+                        <div class="col-12 col-lg-4">
                             <div class="form-item w-100">
                                 <label class="form-label my-3">Nomor Meja<sup>*</sup></label>
-                                <input type="number" name="table_number" class="form-control" min="1" max="99" placeholder="Contoh: 5" value="{{ old('table_number', $tableNumber) }}" required>
+                                <input type="number" name="table_number" class="form-control" min="1" max="99" placeholder="Contoh: 5" value="{{ old('table_number', $tableNumber) }}" inputmode="numeric" required>
                             </div>
                         </div>
                     </div>
@@ -50,51 +51,73 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="table-responsive">
-                            <br><br>
+                        <div class="col-12">
+                            <br>
                             <h4 class="mb-4">Detail Pesanan</h4>
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Gambar</th>
-                                        <th scope="col">Menu</th>
-                                        <th scope="col">Harga</th>
-                                        <th scope="col">Jumlah</th>
-                                        <th scope="col">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                            @php
+                                $subTotal = 0;
+                            @endphp
+                            <div class="checkout-items d-md-none">
+                                @foreach (session('cart') as $item)
                                     @php
-                                        $subTotal = 0;
+                                        $itemTotal = \App\Support\CartLine::lineTotal($item);
+                                        $unitPrice = \App\Support\CartLine::unitPrice($item);
+                                        $subTotal += $itemTotal;
                                     @endphp
-                                    @foreach (session('cart') as $item)
-                                        @php
-                                            $itemTotal = \App\Support\CartLine::lineTotal($item);
-                                            $unitPrice = \App\Support\CartLine::unitPrice($item);
-                                            $addonLabel = \App\Support\CartLine::addonNames($item);
-                                            $subTotal += $itemTotal;
-                                        @endphp
-                                    <tr>
-                                        <th scope="row">
-                                            <div class="d-flex align-items-center mt-2">
-                                                <img src="{{ asset('img_item_upload/'. $item['image']) }}" class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px;" alt="" onerror="this.onerror=null;this.src='{{  $item['image'] }}';">
-                                            </div>
-                                        </th>
-                                        <td class="py-5">
-                                            {{ $item['name'] }}
+                                    <div class="d-flex gap-3 border rounded p-3 mb-2">
+                                        <img src="{{ asset('img_item_upload/'. $item['image']) }}" class="rounded" style="width: 64px; height: 64px; object-fit: cover;" alt="" onerror="this.onerror=null;this.src='{{  $item['image'] }}';">
+                                        <div class="flex-grow-1 min-w-0">
+                                            <div class="fw-semibold">{{ $item['name'] }} × {{ $item['qty'] }}</div>
                                             @foreach ($item['addons'] ?? [] as $addon)
                                                 <div class="small">
                                                     <span class="badge {{ \App\Models\AddonGroup::typeBadgeClass($addon['type'] ?? '') }}">{{ $addon['type_label'] ?? 'Add-on' }}: {{ $addon['name'] }}</span>
                                                 </div>
                                             @endforeach
-                                        </td>
-                                        <td class="py-5">{{ 'Rp'. number_format($unitPrice, 0, ',','.') }}</td>
-                                        <td class="py-5">{{ $item['qty'] }}</td>
-                                        <td class="py-5">{{ 'Rp'. number_format($itemTotal, 0, ',','.') }}</td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                            <div class="small text-muted">{{ 'Rp'. number_format($unitPrice, 0, ',','.') }}</div>
+                                        </div>
+                                        <div class="fw-bold">{{ 'Rp'. number_format($itemTotal, 0, ',','.') }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="table-responsive d-none d-md-block">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Gambar</th>
+                                            <th scope="col">Menu</th>
+                                            <th scope="col">Harga</th>
+                                            <th scope="col">Jumlah</th>
+                                            <th scope="col">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (session('cart') as $item)
+                                            @php
+                                                $itemTotal = \App\Support\CartLine::lineTotal($item);
+                                                $unitPrice = \App\Support\CartLine::unitPrice($item);
+                                            @endphp
+                                        <tr>
+                                            <th scope="row">
+                                                <div class="d-flex align-items-center mt-2">
+                                                    <img src="{{ asset('img_item_upload/'. $item['image']) }}" class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px;" alt="" onerror="this.onerror=null;this.src='{{  $item['image'] }}';">
+                                                </div>
+                                            </th>
+                                            <td class="py-5">
+                                                {{ $item['name'] }}
+                                                @foreach ($item['addons'] ?? [] as $addon)
+                                                    <div class="small">
+                                                        <span class="badge {{ \App\Models\AddonGroup::typeBadgeClass($addon['type'] ?? '') }}">{{ $addon['type_label'] ?? 'Add-on' }}: {{ $addon['name'] }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </td>
+                                            <td class="py-5">{{ 'Rp'. number_format($unitPrice, 0, ',','.') }}</td>
+                                            <td class="py-5">{{ $item['qty'] }}</td>
+                                            <td class="py-5">{{ 'Rp'. number_format($itemTotal, 0, ',','.') }}</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -124,24 +147,22 @@
                                     <h5 class="mb-0 pe-4">Rp{{ number_format($total, 0, ',','.') }}</h5>
                                 </div>
 
-                                <div class="py-4 mb-4 d-flex justify-content-between">
-                                    <h5 class="mb-0 ps-4 me-4">Metode Pembayaran</h5>
-                                    <div class="mb-0 pe-4 mb-3 pe-5">
-                                        <div class="form-check">
-                                            <input type="radio" class="form-check-input bg-primary border-0" id="qris" name="payment_method" value="qris" checked>
-                                            <label class="form-check-label" for="qris">QRIS (Midtrans)</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input type="radio" class="form-check-input bg-primary border-0" id="cash" name="payment_method" value="tunai">
-                                            <label class="form-check-label" for="cash">Tunai di kasir</label>
-                                        </div>
+                                <div class="py-4 mb-4 px-4 payment-method-block">
+                                    <h5 class="mb-3">Metode Pembayaran</h5>
+                                    <div class="form-check mb-2">
+                                        <input type="radio" class="form-check-input bg-primary border-0" id="qris" name="payment_method" value="qris" checked>
+                                        <label class="form-check-label" for="qris">QRIS (Midtrans)</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="radio" class="form-check-input bg-primary border-0" id="cash" name="payment_method" value="tunai">
+                                        <label class="form-check-label" for="cash">Tunai di kasir</label>
                                     </div>
                                 </div>
                             </div>
                             @if (! $midtransConfigured)
                                 <p class="text-danger small mt-2">QRIS belum siap: isi MIDTRANS_SERVER_KEY dan MIDTRANS_CLIENT_KEY di file .env.</p>
                             @endif
-                            <div class="d-flex justify-content-end">
+                            <div class="d-grid">
                                 <button type="button" id="pay-button" class="btn border-secondary py-3 text-uppercase text-primary">Bayar Sekarang</button>
                             </div>
 

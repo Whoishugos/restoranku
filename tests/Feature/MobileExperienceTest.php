@@ -80,6 +80,42 @@ function phoneCartSession(Item $item): array
     ];
 }
 
+it('saves a cash order so it appears in the cashier list', function () {
+    $category = Category::create([
+        'cat_name' => 'Makanan',
+        'description' => 'Kategori Makanan',
+    ]);
+    $item = Item::factory()->create([
+        'name' => 'Nasi Goreng Tunai',
+        'category_id' => $category->id,
+        'price' => 20000,
+        'is_active' => 1,
+        'stock' => 10,
+        'img' => 'default.jpg',
+    ]);
+    $cart = phoneCartSession($item);
+
+    $response = $this->withSession(['cart' => $cart, 'tableNumber' => 8])
+        ->post(route('checkout.store'), [
+            'fullname' => 'Budi Santoso',
+            'phone' => '081234567890',
+            'table_number' => 8,
+            'payment_method' => 'tunai',
+            'note' => 'Pedas',
+        ]);
+
+    $order = \App\Models\Order::first();
+    expect($order)->not->toBeNull()
+        ->and($order->payment_method)->toBe('tunai')
+        ->and($order->table_number)->toBe(8)
+        ->and($order->status)->toBe('pending')
+        ->and($order->user?->fullname)->toBe('Budi Santoso')
+        ->and(\App\Models\Role::where('role_name', 'customer')->exists())->toBeTrue();
+
+    $response->assertRedirect(route('checkout.success', $order->order_code));
+    $this->get(route('checkout.success', $order->order_code))->assertOk()->assertSee('Pesanan berhasil');
+});
+
 it('renders a filled cart as phone cards and keeps the checkout form usable', function () {
     $category = Category::create([
         'cat_name' => 'Makanan',

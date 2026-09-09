@@ -59,6 +59,7 @@ Route::middleware(['auth', 'role:admin,cashier'])->group(function () {
 
 Route::middleware(['auth', 'role:admin,cashier,chef'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/notifications', [DashboardController::class, 'notifications'])->name('dashboard.notifications');
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}/nota', [OrderController::class, 'nota'])->name('orders.nota');
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');

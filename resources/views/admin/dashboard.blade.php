@@ -8,6 +8,7 @@
 @section('content')
     <div class="page-heading">
         <h3>Selamat Datang, {{ Auth::user()->fullname }}!</h3>
+        <p class="text-subtitle text-muted">Ringkasan pesanan terbaru, yang menunggu paling lama, dan yang sudah dibayar.</p>
     </div>
     <div class="page-content">
         <section class="row">
@@ -82,18 +83,43 @@
                         </div>
                     </div>
                 </div>
-                {{-- <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4>Grafik Penjualan</h4>
-                            </div>
-                            <div class="card-body">
-                                <div id="chart-profile-visit"></div>
-                            </div>
+
+                @if ($newOrdersCount > 0)
+                    <div class="alert alert-warning d-flex justify-content-between align-items-center" role="alert">
+                        <div>
+                            <i class="bi bi-bell-fill"></i>
+                            Ada <strong>{{ $newOrdersCount }}</strong> pesanan yang masih perlu dilayani.
                         </div>
+                        <a href="{{ route('orders.index') }}" class="btn btn-sm btn-outline-warning">Lihat daftar</a>
                     </div>
-                </div> --}}
+                @endif
+
+                <div class="row" id="dashboard-order-lists" data-latest-order-id="{{ $latestOrderId }}">
+                    <div class="col-12 col-lg-4 mb-4">
+                        @include('admin.dashboard._order_list', [
+                            'title' => 'Pesanan Terbaru',
+                            'subtitle' => 'Masuk paling baru',
+                            'orders' => $latestOrders,
+                            'emptyText' => 'Belum ada pesanan terbaru.',
+                        ])
+                    </div>
+                    <div class="col-12 col-lg-4 mb-4">
+                        @include('admin.dashboard._order_list', [
+                            'title' => 'Pesanan Terlama',
+                            'subtitle' => 'Menunggu paling lama',
+                            'orders' => $oldestOrders,
+                            'emptyText' => 'Tidak ada pesanan yang menunggu.',
+                        ])
+                    </div>
+                    <div class="col-12 col-lg-4 mb-4">
+                        @include('admin.dashboard._order_list', [
+                            'title' => 'Sudah Dibayarkan',
+                            'subtitle' => 'Pembayaran sudah diterima',
+                            'orders' => $paidOrders,
+                            'emptyText' => 'Belum ada pesanan yang dibayar.',
+                        ])
+                    </div>
+                </div>
             </div>
         </section>
     </div>

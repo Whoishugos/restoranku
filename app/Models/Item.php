@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\MenuImage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -36,6 +37,11 @@ class Item extends Model
     public function scopeAvailable($query)
     {
         return $query->where('is_active', 1)->where('stock', '>', 0);
+    }
+
+    public function imageUrl(): string
+    {
+        return MenuImage::url($this->img);
     }
 
 }

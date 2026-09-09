@@ -1,0 +1,36 @@
+@media (max-width: 1199.98px) {
+    #main {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .card-body {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .card-body table {
+        min-width: 720px;
+    }
+
+    .page-heading h3,
+    .page-title h3 {
+        font-size: 1.25rem;
+    }
+
+    .stats-icon {
+        width: 42px;
+        height: 42px;
+    }
+
+    .d-flex.gap-1.align-items-center {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .col-6 .card-body h6.font-extrabold {
+        font-size: 0.95rem;
+        word-break: break-word;
+    }
+}

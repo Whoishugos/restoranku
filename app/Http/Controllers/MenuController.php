@@ -12,6 +12,7 @@ use App\Services\AddonCatalog;
 use App\Services\MidtransService;
 use App\Support\CartLine;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -290,67 +291,66 @@ class MenuController extends Controller
             'name' => 'Pajak 10%',
         ];
 
-        $customerRoleId = Role::where('role_name', 'customer')->value('id') ?? 4;
+        try {
+            $order = DB::transaction(function () use ($request, $cart, $tableNumber, $totalAmount, $tax, $grandTotal) {
+                $user = $this->guestCustomer(
+                    (string) $request->input('fullname'),
+                    (string) $request->input('phone')
+                );
 
-        $user = User::firstOrCreate(
-            [
-                'phone' => $request->input('phone'),
-                'role_id' => $customerRoleId,
-            ],
-            [
-                'fullname' => $request->input('fullname'),
-                'username' => null,
-                'email' => null,
-                'password' => null,
-            ]
-        );
+                $order = Order::create([
+                    'order_code' => 'ORD-'.$tableNumber.'-'.now()->format('YmdHis').strtoupper(Str::random(4)),
+                    'user_id' => $user->id,
+                    'subtotal' => $totalAmount,
+                    'tax' => $tax,
+                    'grand_total' => $grandTotal,
+                    'status' => 'pending',
+                    'kitchen_status' => Order::KITCHEN_WAITING,
+                    'table_number' => $tableNumber,
+                    'payment_method' => $request->payment_method,
+                    'note' => $request->note,
+                ]);
 
-        if ($user->fullname !== $request->input('fullname')) {
-            $user->update(['fullname' => $request->input('fullname')]);
+                foreach ($cart as $item) {
+                    $lineTotal = CartLine::lineTotal($item);
+                    $taxLine = (int) round(0.1 * $lineTotal);
+                    $qty = (int) $item['qty'];
+                    $menu = Item::find($item['id']);
+                    if ($menu) {
+                        $menu->decrement('stock', $qty);
+                    }
+
+                    foreach ($item['addons'] ?? [] as $addonData) {
+                        $addon = Addon::find($addonData['id'] ?? 0);
+                        if ($addon && $addon->stock > 0) {
+                            $addon->decrement('stock', min($addon->stock, $qty));
+                        }
+                    }
+
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'item_id' => $item['id'],
+                        'quantity' => $qty,
+                        'price' => $lineTotal,
+                        'tax' => $taxLine,
+                        'total_price' => $lineTotal + $taxLine,
+                        'addons' => array_values($item['addons'] ?? []),
+                    ]);
+                }
+
+                return $order;
+            });
+        } catch (\Throwable $e) {
+            report($e);
+            $message = 'Gagal menyimpan pesanan. Silakan coba lagi.';
+            if ($wantsJson) {
+                return response()->json(['status' => 'error', 'message' => $message], 500);
+            }
+
+            return redirect()->route('checkout')->with('error', $message);
         }
-
-        $order = Order::create([
-            'order_code' => 'ORD-'.$tableNumber.'-'.now()->format('YmdHis').strtoupper(Str::random(4)),
-            'user_id' => $user->id,
-            'subtotal' => $totalAmount,
-            'tax' => $tax,
-            'grand_total' => $grandTotal,
-            'status' => 'pending',
-            'kitchen_status' => Order::KITCHEN_WAITING,
-            'table_number' => $tableNumber,
-            'payment_method' => $request->payment_method,
-            'note' => $request->note,
-        ]);
 
         $this->rememberCustomerOrder($order->order_code);
-
-        foreach ($cart as $item) {
-            $lineTotal = CartLine::lineTotal($item);
-            $taxLine = (int) round(0.1 * $lineTotal);
-            $qty = (int) $item['qty'];
-            $menu = Item::find($item['id']);
-            if ($menu) {
-                $menu->decrement('stock', $qty);
-            }
-
-            foreach ($item['addons'] ?? [] as $addonData) {
-                $addon = Addon::find($addonData['id'] ?? 0);
-                if ($addon && $addon->stock > 0) {
-                    $addon->decrement('stock', min($addon->stock, $qty));
-                }
-            }
-
-            OrderItem::create([
-                'order_id' => $order->id,
-                'item_id' => $item['id'],
-                'quantity' => $qty,
-                'price' => $lineTotal,
-                'tax' => $taxLine,
-                'total_price' => $lineTotal + $taxLine,
-                'addons' => array_values($item['addons'] ?? []),
-            ]);
-        }
-
         Session::forget('cart');
 
         if ($request->payment_method === 'tunai') {
@@ -513,5 +513,32 @@ class MenuController extends Controller
             $codes[] = $orderCode;
             Session::put('customer_order_codes', $codes);
         }
+    }
+
+    private function guestCustomer(string $fullname, string $phone): User
+    {
+        $role = Role::firstOrCreate(
+            ['role_name' => 'customer'],
+            ['description' => 'Pelanggan']
+        );
+
+        $user = User::query()
+            ->where('phone', $phone)
+            ->where('role_id', $role->id)
+            ->first();
+
+        if ($user) {
+            if ($user->fullname !== $fullname) {
+                $user->update(['fullname' => $fullname]);
+            }
+
+            return $user;
+        }
+
+        return User::create([
+            'fullname' => $fullname,
+            'phone' => $phone,
+            'role_id' => $role->id,
+        ]);
     }
 }

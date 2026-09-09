@@ -50,7 +50,7 @@
 </div>
 <!-- Fruits Shop End-->
 <div class="modal fade" id="addonModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addon-modal-title">Rekomendasi add-ons</h5>
@@ -128,7 +128,7 @@
                 row.className = 'row g-2';
                 group.addons.forEach(function (addon) {
                     const col = document.createElement('div');
-                    col.className = 'col-md-6';
+                    col.className = 'col-12 col-md-6';
                     const inputType = group.single ? 'radio' : 'checkbox';
                     const img = addon.img
                         ? '<img src="/img_addon_upload/' + addon.img + '" class="rounded me-2" style="width:48px;height:48px;object-fit:cover" alt="">'
@@ -164,7 +164,7 @@
                     addonState = { itemId: payload.item.id, basePrice: payload.item.price, groups: payload.groups };
                     document.getElementById('addon-modal-title').textContent = 'Kustomisasi ' + payload.item.name;
                     const img = document.getElementById('addon-modal-img');
-                    img.src = '/img_item_upload/' + payload.item.image;
+                    img.src = payload.item.image;
                     img.onerror = function () { this.src = payload.item.image; };
                     if (!payload.groups.length) {
                         addToCart(payload.item.id, []);
@@ -191,6 +191,9 @@
                 alert(result.data.message || (result.ok ? 'Berhasil' : 'Gagal'));
                 if (result.ok) {
                     addonModal.hide();
+                    if (typeof updateCartBadge === 'function') {
+                        updateCartBadge(result.data.cart);
+                    }
                 }
             })
             .catch(function () { alert('Gagal menambahkan ke keranjang'); });

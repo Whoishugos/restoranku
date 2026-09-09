@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,8 +18,16 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if (str_starts_with((string) config('app.url'), 'https://')) {
+            URL::forceScheme('https');
+        }
+
         View::composer('customer.*', function ($view) {
-            $view->with('tableNumber', Session::get('tableNumber'));
+            $cart = Session::get('cart', []);
+            $view->with([
+                'tableNumber' => Session::get('tableNumber'),
+                'cartCount' => collect($cart)->sum(fn ($line) => (int) ($line['qty'] ?? 0)),
+            ]);
         });
     }
 }

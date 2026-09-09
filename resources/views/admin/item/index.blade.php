@@ -36,6 +36,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
+                <div class="table-responsive">
                 <table class="table table-striped" id="table1">
                     <thead>
                         <tr>
@@ -55,7 +56,7 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>
-                                <img src="{{ asset('img_item_upload/'. $item->img) }}" width="60" class="img-fluid rounded-top" alt="" onerror="this.onerror=null;this.src='{{  $item->img }}';">
+                                <img src="{{ $item->imageUrl() }}" width="60" class="img-fluid rounded-top" alt="" onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
                             </td>
                             <td>{{ $item->name }}</td>
                             <td>{{ Str::limit($item->description,15) }}</td>
@@ -109,6 +110,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
 

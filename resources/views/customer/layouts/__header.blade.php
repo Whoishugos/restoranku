@@ -1,12 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
     <head>
         <meta charset="utf-8">
-        <title>Restoran Kekupu Villa Jembrana</title>
-        <meta content="width=device-width, initial-scale=1.0" name="viewport">
-        <meta content="" name="keywords">
-        <meta content="" name="description">
+        <title>@yield('title', 'Restoran Kekupu Villa Jembrana')</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+        <meta name="theme-color" content="#81C408">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <meta name="apple-mobile-web-app-title" content="Kekupu">
+        <meta name="description" content="Pesan makanan dan minuman Restoran Kekupu Villa Jembrana langsung dari HP.">
+        <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+        <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
 
         <!-- Google Web Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,5 +34,5 @@
         <!-- Template Stylesheet -->
         <link href="{{ asset('assets/customer/css/style.css') }}" rel="stylesheet">
 
-        <link rel="icon" href="{{ asset('img/logo-kekupu.png') }}" type="image/png">
+        <link rel="icon" href="{{ asset('icons/icon-192.png') }}" type="image/png">
     </head>

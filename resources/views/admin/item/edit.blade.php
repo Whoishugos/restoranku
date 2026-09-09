@@ -61,7 +61,7 @@
                             <label for="image">Gambar</label>
                             @if ($item->img)
                                 <div class="mt-2 mb-2">
-                                    <img src="{{ asset('img_item_upload/'. $item->img) }}" width="200" class="img-fluid rounded-top" alt="" onerror="this.onerror=null;this.src='{{  $item->img }}';">
+                                    <img src="{{ $item->imageUrl() }}" width="200" class="img-fluid rounded-top" alt="" onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
                                 </div>
                             @endif
                             <input type="file" class="form-control" id="image" name="img">

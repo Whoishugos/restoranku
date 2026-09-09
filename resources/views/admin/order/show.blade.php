@@ -85,7 +85,7 @@
                             <td>{{ $loop->iteration }}</td>
                             <td>
                                 @if ($menu->item?->img)
-                                    <img src="{{ asset('img_item_upload/'. $menu->item->img) }}" width="60" class="img-fluid rounded-top" alt="" onerror="this.onerror=null;this.src='{{ $menu->item->img }}';">
+                                    <img src="{{ $menu->item?->imageUrl() ?? asset('img_item_upload/default.jpg') }}" width="60" class="img-fluid rounded-top" alt="">
                                 @else
                                     <span class="text-muted small">Tidak ada gambar</span>
                                 @endif

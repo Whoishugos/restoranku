@@ -42,7 +42,7 @@ class AddonCatalog
                 'id' => $item->id,
                 'name' => $item->name,
                 'price' => (int) $item->price,
-                'image' => $item->img,
+                'image' => $item->imageUrl(),
                 'stock' => (int) $item->stock,
             ],
             'groups' => $groups->map(function (AddonGroup $group) {

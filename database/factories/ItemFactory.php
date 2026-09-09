@@ -15,7 +15,7 @@ class ItemFactory extends Factory
         'category_id' => Category::inRandomOrder()->first()->id, // Ambil ID kategori yang valid
         'price' => $this->faker->numberBetween(1000, 10000),
         'description' => $this->faker->sentence,
-        'img' => $this->faker->imageUrl(),
+        'img' => 'default.jpg',
         'is_active' => $this->faker->boolean,
         'stock' => 50,
         ];

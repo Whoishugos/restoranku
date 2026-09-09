@@ -5,7 +5,7 @@
 @section('content')
 
 <div class="container-fluid py-5 d-flex justify-content-center">
-    <div class="receipt border p-4 bg-white shadow" style="width: 450px; margin-top: 5rem">
+    <div class="receipt border p-4 bg-white shadow mx-3" style="max-width: 450px; width: 100%; margin-top: 5rem">
         <h5 class="text-center mb-2"> Pesanan berhasil dibuat!</h5>
         @include('customer.partials.order-progress', ['order' => $order])
         <hr>

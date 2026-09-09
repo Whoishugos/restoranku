@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Services\MidtransService;
 use App\Services\MonthlyOrderExcelExporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
-    public function index(MonthlyOrderExcelExporter $exporter)
+    public function index(MonthlyOrderExcelExporter $exporter, MidtransService $midtrans)
     {
+        $this->syncPendingQrisPayments($midtrans);
+
         $orders = Order::with(['user', 'orderItems.item'])->latest()->get();
         $kitchenStatuses = Order::kitchenStatusOptions();
         $reportMonths = $exporter->monthOptions();
@@ -39,9 +42,11 @@ class OrderController extends Controller
         return $exporter->download($validated['month']);
     }
 
-    public function show($id)
+    public function show($id, MidtransService $midtrans)
     {
         $order = Order::with(['user', 'orderItems.item'])->findOrFail($id);
+        $this->syncPendingQrisPayments($midtrans, $order);
+        $order->refresh()->load(['user', 'orderItems.item']);
         $orderItems = $order->orderItems;
         $kitchenStatuses = Order::kitchenStatusOptions();
 
@@ -69,11 +74,7 @@ class OrderController extends Controller
             return redirect()->route('orders.index')->with('error', 'Pesanan ini tidak menunggu pembayaran tunai.');
         }
 
-        $order->status = 'settlement';
-        if ($order->kitchen_status === Order::KITCHEN_WAITING || $order->kitchen_status === null) {
-            $order->kitchen_status = Order::KITCHEN_PROCESSING;
-        }
-        $order->save();
+        $order->markAsPaid();
 
         return redirect()->route('orders.index')->with('success', 'Pembayaran diterima. Pesanan masuk ke proses.');
     }
@@ -102,5 +103,34 @@ class OrderController extends Controller
         $order->save();
 
         return redirect()->back()->with('success', 'Status pesanan diperbarui menjadi '.$order->kitchenStatusLabel().'.');
+    }
+
+    private function syncPendingQrisPayments(MidtransService $midtrans, ?Order $only = null): void
+    {
+        if (! $midtrans->isConfigured()) {
+            return;
+        }
+
+        $orders = $only
+            ? collect($only->payment_method === 'qris' && ! $only->isPaid() ? [$only] : [])
+            : Order::query()
+                ->where('payment_method', 'qris')
+                ->where('status', 'pending')
+                ->latest()
+                ->limit(25)
+                ->get();
+
+        foreach ($orders as $order) {
+            try {
+                $status = $midtrans->transactionStatus($order->order_code);
+                $transactionStatus = is_object($status) ? (string) ($status->transaction_status ?? '') : '';
+                $transactionTime = is_object($status) ? ($status->transaction_time ?? null) : null;
+                $fraudStatus = is_object($status) ? ($status->fraud_status ?? null) : null;
+                $paymentType = is_object($status) ? ($status->payment_type ?? null) : null;
+                $order->applyGatewayTransaction($transactionStatus, $fraudStatus, $paymentType, $transactionTime);
+            } catch (\Throwable) {
+                // Webhook Midtrans tetap menjadi sumber utama.
+            }
+        }
     }
 }

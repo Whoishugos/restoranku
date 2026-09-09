@@ -5,7 +5,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\MenuController;
-// use App\Http\Controllers\MidtransController;
+use App\Http\Controllers\MidtransController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TableQrController;
@@ -36,7 +36,7 @@ Route::get('/pesanan', [MenuController::class, 'trackOrders'])->name('customer.o
 Route::get('/pesanan/{orderCode}/status', [MenuController::class, 'trackOrderStatus'])->name('customer.orders.status');
 Route::get('/pesanan/{orderCode}', [MenuController::class, 'trackOrder'])->name('customer.orders.show');
 
-// Route::post('/midtrans/notification', [MidtransController::class, 'notification'])->name('midtrans.notification');
+Route::post('/midtrans/notification', [MidtransController::class, 'notification'])->name('midtrans.notification');
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('categories', CategoryController::class);

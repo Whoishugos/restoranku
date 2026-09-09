@@ -101,6 +101,10 @@
                 <td>{{ $order->created_at->format('d-m-Y H:i') }}</td>
             </tr>
             <tr>
+                <td>Dibayar</td>
+                <td>{{ $order->paidAtLabel() }}</td>
+            </tr>
+            <tr>
                 <td>Pelanggan</td>
                 <td>{{ $order->user->fullname ?? '-' }}</td>
             </tr>
@@ -110,7 +114,7 @@
             </tr>
             <tr>
                 <td>Pembayaran</td>
-                <td>{{ strtoupper($order->payment_method) }} · {{ $order->paymentStatusLabel() }}</td>
+                <td>{{ strtoupper($order->paymentMethodLabel()) }} · {{ $order->paymentStatusLabel() }}</td>
             </tr>
             @if ($order->note)
             <tr>

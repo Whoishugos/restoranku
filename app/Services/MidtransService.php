@@ -21,7 +21,7 @@ class MidtransService
     {
         return Snap::getSnapToken($params);
     }
-    public function notification(): Notification
+    public function notification(): object
     {
         return new Notification();
     }

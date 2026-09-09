@@ -4,7 +4,7 @@
 <div class="col-12 col-md-6 col-xl-4">
     <div class="rounded position-relative fruite-item menu-card h-100">
         <div class="fruite-img menu-card-img">
-            <img src="{{ asset('img_item_upload/'. $item->img) }}" class="img-fluid w-100 rounded-top" alt="{{ $item->name }}" onerror="this.onerror=null;this.src='{{ $item->img }}';">
+            <img src="{{ $item->imageUrl() }}" class="img-fluid w-100 rounded-top" alt="{{ $item->name }}" onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
         </div>
         <div class="text-white px-3 py-1 rounded position-absolute menu-card-badge
             @if ($categoryName == 'Makanan')

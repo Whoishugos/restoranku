@@ -38,6 +38,13 @@ it('customer layout includes phone viewport, PWA tags, and bottom navigation', f
         ->and($master)->toContain('mobile-app.js');
 });
 
+it('resolves local menu photos and falls back when a file is missing', function () {
+    expect(\App\Support\MenuImage::url('1746522699.jpg'))
+        ->toContain('img_item_upload/1746522699.jpg')
+        ->and(\App\Support\MenuImage::url('missing-file.png'))
+        ->toContain('img_item_upload/default.jpg');
+});
+
 it('serves the customer menu as a phone-ready page', function () {
     $this->get('/menu')
         ->assertOk()

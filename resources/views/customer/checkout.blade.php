@@ -65,7 +65,7 @@
                                         $subTotal += $itemTotal;
                                     @endphp
                                     <div class="d-flex gap-3 border rounded p-3 mb-2">
-                                        <img src="{{ asset('img_item_upload/'. $item['image']) }}" class="rounded" style="width: 64px; height: 64px; object-fit: cover;" alt="" onerror="this.onerror=null;this.src='{{  $item['image'] }}';">
+                                        <img src="{{ \App\Support\MenuImage::url($item['image'] ?? '') }}" class="rounded" style="width: 64px; height: 64px; object-fit: cover;" alt="" onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
                                         <div class="flex-grow-1 min-w-0">
                                             <div class="fw-semibold">{{ $item['name'] }} × {{ $item['qty'] }}</div>
                                             @foreach ($item['addons'] ?? [] as $addon)
@@ -99,7 +99,7 @@
                                         <tr>
                                             <th scope="row">
                                                 <div class="d-flex align-items-center mt-2">
-                                                    <img src="{{ asset('img_item_upload/'. $item['image']) }}" class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px;" alt="" onerror="this.onerror=null;this.src='{{  $item['image'] }}';">
+                                                    <img src="{{ \App\Support\MenuImage::url($item['image'] ?? '') }}" class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px;" alt="" onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
                                                 </div>
                                             </th>
                                             <td class="py-5">

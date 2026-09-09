@@ -38,7 +38,7 @@
                 @endphp
                 <div class="cart-card border rounded p-3 mb-3">
                     <div class="d-flex gap-3">
-                        <img src="{{ asset('img_item_upload/'. $item['image']) }}" class="rounded" style="width: 72px; height: 72px; object-fit: cover;" alt="" onerror="this.onerror=null;this.src='{{  $item['image'] }}';">
+                        <img src="{{ \App\Support\MenuImage::url($item['image'] ?? '') }}" class="rounded" style="width: 72px; height: 72px; object-fit: cover;" alt="" onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
                         <div class="flex-grow-1 min-w-0">
                             <div class="d-flex justify-content-between gap-2">
                                 <p class="fw-semibold mb-1">{{ $item['name'] }}</p>
@@ -95,7 +95,7 @@
                     <tr>
                         <th scope="row">
                             <div class="d-flex align-items-center">
-                                <img src="{{ asset('img_item_upload/'. $item['image']) }}" class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px;" alt="" onerror="this.onerror=null;this.src='{{  $item['image'] }}';">
+                                <img src="{{ \App\Support\MenuImage::url($item['image'] ?? '') }}" class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px;" alt="" onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
                             </div>
                         </th>
                         <td>

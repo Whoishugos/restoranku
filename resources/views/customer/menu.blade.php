@@ -164,7 +164,7 @@
                     addonState = { itemId: payload.item.id, basePrice: payload.item.price, groups: payload.groups };
                     document.getElementById('addon-modal-title').textContent = 'Kustomisasi ' + payload.item.name;
                     const img = document.getElementById('addon-modal-img');
-                    img.src = '/img_item_upload/' + payload.item.image;
+                    img.src = payload.item.image;
                     img.onerror = function () { this.src = payload.item.image; };
                     if (!payload.groups.length) {
                         addToCart(payload.item.id, []);

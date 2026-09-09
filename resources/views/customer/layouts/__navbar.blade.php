@@ -2,7 +2,7 @@
     <div class="container px-0">
         <nav class="navbar navbar-light bg-white navbar-expand-xl">
             <a href="{{ route('menu') }}" class="navbar-brand brand-lockup d-flex align-items-center gap-2 me-2 py-0">
-                <img src="{{ asset('icons/icon-192.png') }}" alt="Logo {{ config('app.name') }}" class="brand-logo">
+                <img src="{{ asset('img/logo-kekupu.png') }}" alt="Logo {{ config('app.name') }}" class="brand-logo">
                 <span class="brand-title">
                     <span class="d-block">RESTORAN KEKUPU</span>
                     <span class="d-block brand-subtitle">VILLA JEMBRANA</span>

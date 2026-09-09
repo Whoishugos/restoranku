@@ -65,6 +65,9 @@
         if (hint) {
             hint.textContent = 'Di Safari: ketuk Bagikan, lalu pilih Tambah ke Layar Utama.';
         }
+        if (banner) {
+            banner.classList.add('is-ios');
+        }
         if (installBtn) {
             installBtn.hidden = true;
         }

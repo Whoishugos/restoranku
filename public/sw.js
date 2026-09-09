@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kekupu-mobile-v1';
+const CACHE_NAME = 'kekupu-mobile-v2';
 const PRECACHE_URLS = [
     '/offline.html',
     '/assets/customer/css/bootstrap.min.css',

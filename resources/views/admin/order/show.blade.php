@@ -43,8 +43,13 @@
                 <div class="row">
                     <div class="col-md-6">
                         <p>Dibuat Pada: {{ $order->created_at->format('d-m-Y H:i') }}</p>
+                        <p>Saat Pembayaran: {{ $order->paidAtLabel() }}</p>
                         <p>Nama Pelanggan: {{ $order->user->fullname }}</p>
-                        <p>Pembayaran: {{ $order->paymentStatusLabel() }}</p>
+                        <p>Pembayaran:
+                            <span class="badge {{ $order->paymentStatusBadgeClass() }}">
+                                {{ $order->paymentStatusLabel() }}
+                            </span>
+                        </p>
                         <p>Status dapur:
                             <span class="badge {{ $order->kitchenStatusBadgeClass() }}">
                                 {{ $order->kitchenStatusLabel() }}
@@ -54,7 +59,7 @@
                     </div>
                     <div class="col-md-6">
                         <p>No. Meja: {{ $order->table_number }}</p>
-                        <p>Metode Pembayaran: {{ $order->payment_method }}</p>
+                        <p>Metode Pembayaran: {{ $order->paymentMethodLabel() }}</p>
                         <p>Catatan: {{ $order->note ?? '-' }}</p>
                     </div>
                 </div>

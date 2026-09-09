@@ -410,14 +410,13 @@ class MenuController extends Controller
         if ($order->payment_method === 'qris' && $order->status === 'pending' && $midtrans->isConfigured()) {
             try {
                 $status = $midtrans->transactionStatus($order->order_code);
-                $transactionStatus = is_object($status) ? ($status->transaction_status ?? null) : null;
-                if (in_array($transactionStatus, ['settlement', 'capture'], true)) {
-                    $order->status = 'settlement';
-                    if ($order->kitchen_status === Order::KITCHEN_WAITING || $order->kitchen_status === null) {
-                        $order->kitchen_status = Order::KITCHEN_PROCESSING;
-                    }
-                    $order->save();
-                }
+                $transactionStatus = is_object($status) ? (string) ($status->transaction_status ?? '') : '';
+                $order->applyGatewayTransaction(
+                    $transactionStatus,
+                    is_object($status) ? ($status->fraud_status ?? null) : null,
+                    is_object($status) ? ($status->payment_type ?? null) : null,
+                    is_object($status) ? ($status->transaction_time ?? null) : null,
+                );
             } catch (\Exception $e) {
                 // Biarkan status pending; webhook Midtrans akan memperbarui.
             }

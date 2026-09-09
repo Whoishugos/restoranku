@@ -45,6 +45,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
+                <div class="table-responsive">
                 <table class="table table-striped" id="table1">
                     <thead>
                         <tr>
@@ -55,6 +56,8 @@
                             <th>Status</th>
                             <th>No. Meja</th>
                             <th>Metode Pembayaran</th>
+                            <th>Status Pembayaran</th>
+                            <th>Saat Pembayaran</th>
                             <th>Catatan</th>
                             <th>Dibuat Pada</th>
                             <th>Aksi</th>
@@ -88,7 +91,13 @@
                                 </span>
                             </td>
                             <td>{{ $order->table_number }}</td>
-                            <td>{{ $order->payment_method }}</td>
+                            <td>{{ $order->paymentMethodLabel() }}</td>
+                            <td>
+                                <span class="badge {{ $order->paymentStatusBadgeClass() }}">
+                                    {{ $order->paymentStatusLabel() }}
+                                </span>
+                            </td>
+                            <td>{{ $order->paidAtLabel() }}</td>
                             <td>{{ $order->note ?? '-' }}</td>
                             <td>{{ $order->created_at->format('d-m-Y H:i') }}</td>
                             <td>
@@ -103,6 +112,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </section>

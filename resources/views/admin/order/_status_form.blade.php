@@ -2,6 +2,7 @@
     $currentKitchen = $order->kitchenStatus();
     $canUpdateKitchen = in_array(Auth::user()->role->role_name ?? '', ['admin', 'cashier', 'chef'], true);
     $canConfirmPayment = in_array(Auth::user()->role->role_name ?? '', ['admin', 'cashier'], true);
+    $isServed = $order->isServed();
 @endphp
 @if ($canConfirmPayment && ! $order->isPaid() && $order->payment_method === 'tunai')
     <form action="{{ route('orders.confirmPayment', $order->id) }}" method="POST" class="mb-2">
@@ -12,15 +13,29 @@
     </form>
 @endif
 @if ($canUpdateKitchen && $order->isPaid())
-    <form action="{{ route('orders.updateKitchenStatus', $order->id) }}" method="POST" class="d-flex gap-1 align-items-center">
-        @csrf
-        <select name="kitchen_status" class="form-select form-select-sm" style="min-width: 160px;">
-            @foreach ($kitchenStatuses as $value => $label)
-                <option value="{{ $value }}" @selected($currentKitchen === $value)>{{ $label }}</option>
-            @endforeach
-        </select>
-        <button type="submit" class="btn btn-primary btn-sm">
-            Ubah
-        </button>
-    </form>
+    @if ($isServed)
+        <div class="d-flex gap-1 align-items-center">
+            <select class="form-select form-select-sm" style="min-width: 160px;" disabled aria-label="Status pesanan selesai">
+                @foreach ($kitchenStatuses as $value => $label)
+                    <option value="{{ $value }}" @selected($currentKitchen === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+            <button type="button" class="btn btn-secondary btn-sm" disabled>
+                Ubah
+            </button>
+        </div>
+        <div class="small text-muted mt-1">Pesanan sudah selesai dan tidak dapat diubah lagi.</div>
+    @else
+        <form action="{{ route('orders.updateKitchenStatus', $order->id) }}" method="POST" class="d-flex gap-1 align-items-center">
+            @csrf
+            <select name="kitchen_status" class="form-select form-select-sm" style="min-width: 160px;">
+                @foreach ($kitchenStatuses as $value => $label)
+                    <option value="{{ $value }}" @selected($currentKitchen === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">
+                Ubah
+            </button>
+        </form>
+    @endif
 @endif

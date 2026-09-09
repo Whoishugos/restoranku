@@ -6,23 +6,41 @@ use App\Models\Order;
 use App\Services\MonthlyOrderExcelExporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
-    public function index(MonthlyOrderExcelExporter $exporter)
+    public function index(Request $request, MonthlyOrderExcelExporter $exporter)
     {
-        $orders = Order::with(['user', 'orderItems.item'])->latest()->get();
+        $filter = $request->query('filter', Order::LIST_FILTER_ACTIVE);
+        if (! array_key_exists($filter, Order::listFilters())) {
+            $filter = Order::LIST_FILTER_ACTIVE;
+        }
+
+        $ordersQuery = Order::with(['user', 'orderItems.item'])->latest();
+        if ($filter === Order::LIST_FILTER_SERVED) {
+            $ordersQuery->served();
+        } else {
+            $ordersQuery->notServed();
+        }
+
+        $orders = $ordersQuery->get();
         $kitchenStatuses = Order::kitchenStatusOptions();
         $reportMonths = $exporter->monthOptions();
         $selectedMonth = now()->format('Y-m');
         $canExportReport = in_array(Auth::user()->role->role_name ?? '', ['admin', 'cashier'], true);
+        $activeCount = Order::query()->notServed()->count();
+        $servedCount = Order::query()->served()->count();
 
         return view('admin.order.index', compact(
             'orders',
             'kitchenStatuses',
             'reportMonths',
             'selectedMonth',
-            'canExportReport'
+            'canExportReport',
+            'filter',
+            'activeCount',
+            'servedCount'
         ));
     }
 
@@ -86,7 +104,7 @@ class OrderController extends Controller
         }
 
         $validated = $request->validate([
-            'kitchen_status' => 'required|in:processing,cooking,ready',
+            'kitchen_status' => ['required', Rule::in(array_keys(Order::kitchenStatusOptions()))],
         ]);
 
         $order = Order::findOrFail($id);
@@ -95,12 +113,29 @@ class OrderController extends Controller
             return redirect()->back()->with('error', 'Konfirmasi pembayaran terlebih dahulu sebelum mengubah status dapur.');
         }
 
+        if ($order->isServed()) {
+            return redirect()->back()->with('error', 'Pesanan yang sudah selesai tidak dapat diubah lagi.');
+        }
+
         $order->kitchen_status = $validated['kitchen_status'];
         if ($order->status === 'cooked') {
             $order->status = 'settlement';
         }
         $order->save();
 
-        return redirect()->back()->with('success', 'Status pesanan diperbarui menjadi '.$order->kitchenStatusLabel().'.');
+        $message = 'Status pesanan diperbarui menjadi '.$order->kitchenStatusLabel().'.';
+
+        if ($order->isServed()) {
+            $message = 'Pesanan ditandai selesai dan dipindahkan ke daftar sudah dilayani.';
+            $fromShow = str_contains((string) url()->previous(), '/orders/'.$order->id);
+
+            if (! $fromShow) {
+                return redirect()
+                    ->route('orders.index', ['filter' => Order::LIST_FILTER_SERVED])
+                    ->with('success', $message);
+            }
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 }

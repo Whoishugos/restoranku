@@ -51,10 +51,16 @@
                     </a>
                 </li>
 
-                <li class="sidebar-item {{ request()->routeIs('orders.*') ? 'active' : '' }}">
+                <li class="sidebar-item {{ request()->routeIs('orders.*') && request('filter') !== 'served' ? 'active' : '' }}">
                     <a href="{{ route('orders.index') }}" class='sidebar-link'>
                         <i class="bi bi-cart-fill"></i>
                         <span>Daftar Pesanan</span>
+                    </a>
+                </li>
+                <li class="sidebar-item {{ request()->routeIs('orders.index') && request('filter') === 'served' ? 'active' : '' }}">
+                    <a href="{{ route('orders.index', ['filter' => 'served']) }}" class='sidebar-link'>
+                        <i class="bi bi-check2-circle"></i>
+                        <span>Sudah Dilayani</span>
                     </a>
                 </li>
 

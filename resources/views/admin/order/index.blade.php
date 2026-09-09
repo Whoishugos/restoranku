@@ -11,8 +11,14 @@
     <div class="page-title">
         <div class="row">
             <div class="col-12 col-md-6 order-md-1 order-last">
-                <h3>Daftar Pesanan</h3>
-                <p class="text-subtitle text-muted">Kasir dan koki dapat mengubah status: proses, sedang dimasak, siap disajikan</p>
+                <h3>{{ $filter === \App\Models\Order::LIST_FILTER_SERVED ? 'Sudah Dilayani' : 'Daftar Pesanan' }}</h3>
+                <p class="text-subtitle text-muted">
+                    @if ($filter === \App\Models\Order::LIST_FILTER_SERVED)
+                        Pesanan yang sudah selesai tidak dapat diubah lagi
+                    @else
+                        Kasir dan koki dapat mengubah status: proses, sedang dimasak, siap disajikan, selesai
+                    @endif
+                </p>
             </div>
             @if ($canExportReport)
             <div class="col-12 col-md-6 order-md-2 order-first">
@@ -43,6 +49,27 @@
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <p>{{ session('error') }}</p>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                <ul class="nav nav-pills mb-3">
+                    <li class="nav-item">
+                        <a class="nav-link {{ $filter === \App\Models\Order::LIST_FILTER_ACTIVE ? 'active' : '' }}" href="{{ route('orders.index') }}">
+                            Sedang Dilayani
+                            <span class="badge {{ $filter === \App\Models\Order::LIST_FILTER_ACTIVE ? 'bg-light text-primary' : 'bg-secondary' }}">{{ $activeCount }}</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ $filter === \App\Models\Order::LIST_FILTER_SERVED ? 'active' : '' }}" href="{{ route('orders.index', ['filter' => \App\Models\Order::LIST_FILTER_SERVED]) }}">
+                            Sudah Dilayani
+                            <span class="badge {{ $filter === \App\Models\Order::LIST_FILTER_SERVED ? 'bg-light text-primary' : 'bg-secondary' }}">{{ $servedCount }}</span>
+                        </a>
+                    </li>
+                </ul>
+                @if ($orders->isEmpty())
+                    <div class="alert alert-light border">
+                        {{ $filter === \App\Models\Order::LIST_FILTER_SERVED
+                            ? 'Belum ada pesanan yang selesai.'
+                            : 'Belum ada pesanan yang sedang dilayani.' }}
                     </div>
                 @endif
                 <table class="table table-striped" id="table1">

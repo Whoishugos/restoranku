@@ -128,11 +128,11 @@
 
                         if (newOrders.length > 0) {
                             showToast(newOrders);
-                            if (listsEl) {
-                                window.setTimeout(function () { window.location.reload(); }, 1200);
-                            }
                             seenId = latestId;
                             localStorage.setItem(storageKey, String(seenId));
+                            if (listsEl) {
+                                window.setTimeout(function () { window.location.reload(); }, 8500);
+                            }
                         }
                     })
                     .catch(function () {});

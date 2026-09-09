@@ -89,6 +89,33 @@ class Order extends Model
         });
     }
 
+    public function scopePaid($query)
+    {
+        return $query->whereIn('status', ['settlement', 'cooked']);
+    }
+
+    public function scopeNewerThan($query, int $sinceId)
+    {
+        return $query->where('id', '>', $sinceId);
+    }
+
+    public function toFeedArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'order_code' => $this->order_code,
+            'table_number' => $this->table_number,
+            'customer' => $this->user->fullname ?? '-',
+            'grand_total' => (int) $this->grand_total,
+            'grand_total_label' => 'Rp'.number_format((int) $this->grand_total, 0, ',', '.'),
+            'status_label' => $this->kitchenStatusLabel(),
+            'status_badge' => $this->kitchenStatusBadgeClass(),
+            'paid' => $this->isPaid(),
+            'created_at' => optional($this->created_at)->format('d-m-Y H:i'),
+            'url' => route('orders.show', $this->id),
+        ];
+    }
+
     public function paymentStatusLabel(): string
     {
         if ($this->isPaid()) {

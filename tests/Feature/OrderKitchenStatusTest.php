@@ -1,40 +1,6 @@
 <?php
 
 use App\Models\Order;
-use App\Models\Role;
-use App\Models\User;
-
-function staffUser(string $roleName = 'cashier'): User
-{
-    $role = Role::query()->firstOrCreate(
-        ['role_name' => $roleName],
-        ['description' => ucfirst($roleName)]
-    );
-
-    return User::factory()->create(['role_id' => $role->id]);
-}
-
-function makeOrder(array $overrides = []): Order
-{
-    $customerRole = Role::query()->firstOrCreate(
-        ['role_name' => 'customer'],
-        ['description' => 'Pelanggan']
-    );
-    $customer = User::factory()->create(['role_id' => $customerRole->id]);
-
-    return Order::create(array_merge([
-        'order_code' => 'ORD-TEST-'.uniqid(),
-        'user_id' => $customer->id,
-        'subtotal' => 10000,
-        'tax' => 1000,
-        'grand_total' => 11000,
-        'status' => 'settlement',
-        'kitchen_status' => Order::KITCHEN_READY,
-        'table_number' => 5,
-        'payment_method' => 'tunai',
-        'note' => null,
-    ], $overrides));
-}
 
 test('status menu includes selesai', function () {
     $staff = staffUser();

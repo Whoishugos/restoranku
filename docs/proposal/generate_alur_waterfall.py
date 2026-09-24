@@ -28,8 +28,8 @@ CAPTION_SUB = "#555555"
 BOX_H = 4.2
 BOX_W_MAIN = 38.0
 BOX_W_START = 18.0
-BOX_W_SIDE = 24.0
-BOX_W_CENTER = 32.0
+BOX_W_SIDE = 23.0
+BOX_W_CENTER = 30.0
 
 LINE_W = 1.35
 ARROW_MUT = 12
@@ -112,31 +112,29 @@ def draw_flowchart(out_path: Path, dpi: int = 300) -> None:
     fork_y = bot - gap * 0.85
     ax.plot([cx, cx], [bot - 0.05, fork_y], color=ARROW, linewidth=LINE_W, zorder=2)
 
-    # Column centers for the three parallel boxes
-    left_x = 22.0
+    # Column centers for the three parallel boxes (gap between boxes)
+    left_x = 18.0
     mid_x = 50.0
-    right_x = 78.0
+    right_x = 82.0
     _hline(ax, left_x, right_x, fork_y)
-
-    # Arrows down from fork bar to each parallel box
-    y_par = fork_y - gap - BOX_H / 2 - 0.3
-    for x in (left_x, mid_x, right_x):
-        _vline_arrow(ax, x, fork_y, y_par + BOX_H / 2 + 0.05)
 
     # Parallel boxes (center label wraps to two lines like the example)
     par_h = 5.4
     y_par = fork_y - gap - par_h / 2 - 0.15
+    for x in (left_x, mid_x, right_x):
+        _vline_arrow(ax, x, fork_y, y_par + par_h / 2 + 0.05)
+
     bot_l, _ = _box(
-        ax, left_x, y_par, BOX_W_SIDE + 2.0, par_h, "Identifikasi Masalah",
+        ax, left_x, y_par, BOX_W_SIDE, par_h, "Identifikasi Masalah",
         fontsize=9.5,
     )
     bot_m, _ = _box(
-        ax, mid_x, y_par, BOX_W_CENTER + 2.0, par_h,
+        ax, mid_x, y_par, BOX_W_CENTER, par_h,
         "Menentukan Tujuan dan\nRuang Lingkup Penelitian",
         fontsize=9.0, multiline=True,
     )
     bot_r, _ = _box(
-        ax, right_x, y_par, BOX_W_SIDE + 2.0, par_h, "Pengumpulan Data",
+        ax, right_x, y_par, BOX_W_SIDE, par_h, "Pengumpulan Data",
         fontsize=9.5,
     )
     # Use lowest bottom among the three (they share the same cy/h)

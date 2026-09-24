@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Generate Gambar 3.1 — Alur Penelitian metode Waterfall.
 
-Matches the classic skripsi flowchart style: white background, black-bordered
+Proposal: Restoran Kekupu Villa Jembrana / Laravel 12 / QR Code.
+Classic skripsi flowchart style: white background, black-bordered
 rectangles, black arrows, with a three-way parallel branch after Analisis
 Kebutuhan that merges before Desain Sistem.
+
+Bab 3 testing: Black-Box Testing AND User Acceptance Testing (UAT).
 """
 
 from pathlib import Path
@@ -87,7 +90,7 @@ def _hline(ax, x0, x1, y):
 
 
 def draw_flowchart(out_path: Path, dpi: int = 300) -> None:
-    fig, ax = plt.subplots(figsize=(9.0, 14.0), dpi=dpi)
+    fig, ax = plt.subplots(figsize=(9.0, 15.0), dpi=dpi)
     ax.set_xlim(0, 100)
     ax.set_ylim(0, 100)
     ax.set_aspect("auto")
@@ -96,10 +99,10 @@ def draw_flowchart(out_path: Path, dpi: int = 300) -> None:
     ax.set_facecolor(BG)
 
     cx = 50.0
-    gap = 2.35  # vertical gap between box edge and next arrow tip / bar
+    gap = 2.15  # vertical gap between box edge and next arrow tip / bar
 
     # --- 1. Mulai ---
-    y = 94.0
+    y = 95.0
     bot, _ = _box(ax, cx, y, BOX_W_START, BOX_H, "Mulai", rounded=True, fontsize=11)
 
     # --- 2. Analisis Kebutuhan ---
@@ -118,8 +121,8 @@ def draw_flowchart(out_path: Path, dpi: int = 300) -> None:
     right_x = 82.0
     _hline(ax, left_x, right_x, fork_y)
 
-    # Parallel boxes (center label wraps to two lines like the example)
-    par_h = 5.4
+    # Parallel boxes — research steps from Kekupu Villa proposal
+    par_h = 6.2
     y_par = fork_y - gap - par_h / 2 - 0.15
     for x in (left_x, mid_x, right_x):
         _vline_arrow(ax, x, fork_y, y_par + par_h / 2 + 0.05)
@@ -134,40 +137,47 @@ def draw_flowchart(out_path: Path, dpi: int = 300) -> None:
         fontsize=9.0, multiline=True,
     )
     bot_r, _ = _box(
-        ax, right_x, y_par, BOX_W_SIDE, par_h, "Pengumpulan Data",
-        fontsize=9.5,
+        ax, right_x, y_par, BOX_W_SIDE + 1.5, par_h,
+        "Pengumpulan Data\n(observasi, wawancara,\nstudi pustaka)",
+        fontsize=8.2, multiline=True,
     )
-    # Use lowest bottom among the three (they share the same cy/h)
     par_bot = min(bot_l, bot_m, bot_r)
 
     # --- 4. Join / merge ---
     join_y = par_bot - gap * 0.85
     for x in (left_x, mid_x, right_x):
-        # Plain drop lines into the join bar (classic fork-join look)
         ax.plot([x, x], [par_bot - 0.05, join_y], color=ARROW, linewidth=LINE_W, zorder=2)
     _hline(ax, left_x, right_x, join_y)
 
-    # Arrow from join center down to Desain Sistem
+    # --- 5. Desain Sistem (Use Case, ERD, DFD, UI) ---
     y_arrow_end = join_y - gap
-    y_desain = y_arrow_end - BOX_H / 2
+    h_desain = 5.6
+    y_desain = y_arrow_end - h_desain / 2
     _vline_arrow(ax, cx, join_y, y_arrow_end + 0.05)
-    bot, _ = _box(ax, cx, y_desain, BOX_W_MAIN, BOX_H, "Desain Sistem", fontsize=10.5)
+    bot, _ = _box(
+        ax, cx, y_desain, 46.0, h_desain,
+        "Desain Sistem\n(Use Case, ERD, DFD, UI)",
+        fontsize=9.8, multiline=True,
+    )
 
-    # --- Linear cascade ---
+    # --- Linear cascade (implementation → testing → deployment) ---
+    # Testing labels MUST match Bab 3: Black-Box Testing AND UAT
     linear = [
-        "Penulisan Kode (Coding)",
-        "Pengujian Sistem (Blackbox Testing)",
-        "Penerapan dan Pemeliharaan",
+        ("Penulisan Kode", BOX_W_MAIN, BOX_H, 10.5, False),
+        (
+            "Pengujian Sistem\n(Black-Box Testing & UAT)",
+            48.0,
+            5.6,
+            9.8,
+            True,
+        ),
+        ("Penerapan dan Pemeliharaan", 46.0, BOX_H, 10.2, False),
     ]
-    for label in linear:
+    for label, w, h, fs, multi in linear:
         y_arrow_end = bot - gap
-        y_next = y_arrow_end - BOX_H / 2
+        y_next = y_arrow_end - h / 2
         _vline_arrow(ax, cx, bot - 0.05, y_arrow_end + 0.05)
-        # Slightly wider for longer labels
-        w = 46.0 if "Blackbox" in label or "Pemeliharaan" in label else BOX_W_MAIN
-        if "Penulisan" in label:
-            w = 40.0
-        bot, _ = _box(ax, cx, y_next, w, BOX_H, label, fontsize=10.2)
+        bot, _ = _box(ax, cx, y_next, w, h, label, fontsize=fs, multiline=multi)
 
     # --- Selesai ---
     y_arrow_end = bot - gap
@@ -178,7 +188,7 @@ def draw_flowchart(out_path: Path, dpi: int = 300) -> None:
     # Caption (skripsi)
     ax.text(
         50,
-        4.8,
+        3.6,
         "Gambar 3.1 Alur Penelitian menggunakan metode waterfall",
         ha="center",
         va="center",
@@ -189,7 +199,7 @@ def draw_flowchart(out_path: Path, dpi: int = 300) -> None:
     )
     ax.text(
         50,
-        2.7,
+        1.6,
         "Sumber: Diadaptasi dari model Waterfall (Pressman, 2015)",
         ha="center",
         va="center",

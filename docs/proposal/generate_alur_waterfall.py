@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""Generate Gambar 3.1 — Alur Penelitian metode Waterfall (detailed cascade)."""
+"""Generate Gambar 3.1 — Alur Penelitian metode Waterfall.
+
+Matches the classic skripsi flowchart style: white background, black-bordered
+rectangles, black arrows, with a three-way parallel branch after Analisis
+Kebutuhan that merges before Desain Sistem.
+"""
 
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Polygon
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 OUT_DIRS = [
     Path("/workspace/docs/proposal"),
@@ -12,71 +17,77 @@ OUT_DIRS = [
 ]
 FILENAME = "gambar-3-1-alur-waterfall.png"
 
-NAVY = "#1B3A5F"
-NAVY_DARK = "#0D2137"
-HEADER = "#163552"
-PANEL = "#F4F7FA"
-PANEL_EDGE = "#C5D2E0"
-SUB_TEXT = "#1A2A3A"
-ARROW = "#111111"
 BG = "#FFFFFF"
-TITLE_SUB = "#555555"
+EDGE = "#000000"
+TEXT = "#000000"
+ARROW = "#000000"
+CAPTION = "#222222"
+CAPTION_SUB = "#555555"
 
-# Main stage title + detailed sub-steps (Indonesian, skripsi Bab 3)
-STAGES = [
-    {
-        "title": "Analisis Kebutuhan",
-        "en": "Requirement Analysis",
-        "steps": [
-            "Observasi proses bisnis & alur kerja",
-            "Wawancara pemangku kepentingan",
-            "Studi pustaka & referensi sistem sejenis",
-            "Identifikasi kebutuhan fungsional",
-            "Identifikasi kebutuhan non-fungsional",
-        ],
-    },
-    {
-        "title": "Perancangan Sistem",
-        "en": "System Design",
-        "steps": [
-            "Pemodelan Use Case Diagram",
-            "Perancangan ERD (basis data)",
-            "Pemodelan DFD (aliran data)",
-            "Rancangan UI / antarmuka pengguna",
-        ],
-    },
-    {
-        "title": "Implementasi",
-        "en": "Implementation — Penulisan Kode",
-        "steps": [
-            "Penulisan kode (coding) PHP / Laravel 12",
-            "Implementasi basis data MySQL",
-            "Integrasi QR Code",
-            "Integrasi pembayaran Midtrans",
-        ],
-    },
-    {
-        "title": "Pengujian",
-        "en": "Testing",
-        "steps": [
-            "Black-Box Testing (uji fungsionalitas)",
-            "User Acceptance Testing (UAT)",
-        ],
-    },
-    {
-        "title": "Pemeliharaan",
-        "en": "Maintenance",
-        "steps": [
-            "Deployment / hosting sistem",
-            "Perbaikan & pemeliharaan berkala",
-        ],
-    },
-]
+# Box geometry (axes coordinates 0–100)
+BOX_H = 4.2
+BOX_W_MAIN = 38.0
+BOX_W_START = 18.0
+BOX_W_SIDE = 24.0
+BOX_W_CENTER = 32.0
+
+LINE_W = 1.35
+ARROW_MUT = 12
+FONT = "DejaVu Sans"
+
+
+def _box(ax, cx, cy, w, h, label, *, rounded=False, fontsize=10.5, multiline=False):
+    """Draw a black-bordered white rectangle centered at (cx, cy)."""
+    style = "round,pad=0.12,rounding_size=0.85" if rounded else "square,pad=0.05"
+    patch = FancyBboxPatch(
+        (cx - w / 2, cy - h / 2),
+        w,
+        h,
+        boxstyle=style,
+        facecolor=BG,
+        edgecolor=EDGE,
+        linewidth=LINE_W,
+        zorder=3,
+    )
+    ax.add_patch(patch)
+    ax.text(
+        cx,
+        cy,
+        label,
+        ha="center",
+        va="center",
+        fontsize=fontsize,
+        fontweight="bold" if rounded else "normal",
+        color=TEXT,
+        fontfamily=FONT,
+        zorder=4,
+        linespacing=1.25 if multiline else 1.0,
+    )
+    return cy - h / 2, cy + h / 2  # bottom, top
+
+
+def _vline_arrow(ax, x, y_from, y_to):
+    """Vertical arrow from y_from (higher) down to y_to (lower)."""
+    arrow = FancyArrowPatch(
+        (x, y_from),
+        (x, y_to),
+        arrowstyle="-|>",
+        mutation_scale=ARROW_MUT,
+        linewidth=LINE_W,
+        color=ARROW,
+        zorder=2,
+        shrinkA=0,
+        shrinkB=0,
+    )
+    ax.add_patch(arrow)
+
+
+def _hline(ax, x0, x1, y):
+    ax.plot([x0, x1], [y, y], color=ARROW, linewidth=LINE_W, zorder=2, solid_capstyle="butt")
 
 
 def draw_flowchart(out_path: Path, dpi: int = 300) -> None:
-    # Portrait, print-friendly; taller to fit sub-steps
-    fig, ax = plt.subplots(figsize=(8.0, 13.2), dpi=dpi)
+    fig, ax = plt.subplots(figsize=(9.0, 14.0), dpi=dpi)
     ax.set_xlim(0, 100)
     ax.set_ylim(0, 100)
     ax.set_aspect("auto")
@@ -84,223 +95,109 @@ def draw_flowchart(out_path: Path, dpi: int = 300) -> None:
     fig.patch.set_facecolor(BG)
     ax.set_facecolor(BG)
 
-    # Title block
-    ax.text(
-        50,
-        97.4,
-        "Alur Penelitian menggunakan metode Waterfall",
-        ha="center",
-        va="center",
-        fontsize=12.5,
-        fontweight="bold",
-        color="#111111",
-        fontfamily="DejaVu Sans",
+    cx = 50.0
+    gap = 2.35  # vertical gap between box edge and next arrow tip / bar
+
+    # --- 1. Mulai ---
+    y = 94.0
+    bot, _ = _box(ax, cx, y, BOX_W_START, BOX_H, "Mulai", rounded=True, fontsize=11)
+
+    # --- 2. Analisis Kebutuhan ---
+    y_arrow_end = bot - gap
+    y_next = y_arrow_end - BOX_H / 2
+    _vline_arrow(ax, cx, bot - 0.05, y_arrow_end + 0.05)
+    bot, top = _box(ax, cx, y_next, BOX_W_MAIN, BOX_H, "Analisis Kebutuhan", fontsize=10.5)
+
+    # --- 3. Fork into three parallel boxes ---
+    fork_y = bot - gap * 0.85
+    ax.plot([cx, cx], [bot - 0.05, fork_y], color=ARROW, linewidth=LINE_W, zorder=2)
+
+    # Column centers for the three parallel boxes
+    left_x = 22.0
+    mid_x = 50.0
+    right_x = 78.0
+    _hline(ax, left_x, right_x, fork_y)
+
+    # Arrows down from fork bar to each parallel box
+    y_par = fork_y - gap - BOX_H / 2 - 0.3
+    for x in (left_x, mid_x, right_x):
+        _vline_arrow(ax, x, fork_y, y_par + BOX_H / 2 + 0.05)
+
+    # Parallel boxes (center label wraps to two lines like the example)
+    par_h = 5.4
+    y_par = fork_y - gap - par_h / 2 - 0.15
+    bot_l, _ = _box(
+        ax, left_x, y_par, BOX_W_SIDE + 2.0, par_h, "Identifikasi Masalah",
+        fontsize=9.5,
     )
-    ax.text(
-        50,
-        95.2,
-        "Model Waterfall — Siklus Hidup Pengembangan Sistem "
-        "(dengan rincian tahap desain hingga penulisan kode)",
-        ha="center",
-        va="center",
-        fontsize=7.8,
-        color=TITLE_SUB,
-        fontfamily="DejaVu Sans",
-        style="italic",
+    bot_m, _ = _box(
+        ax, mid_x, y_par, BOX_W_CENTER + 2.0, par_h,
+        "Menentukan Tujuan dan\nRuang Lingkup Penelitian",
+        fontsize=9.0, multiline=True,
     )
+    bot_r, _ = _box(
+        ax, right_x, y_par, BOX_W_SIDE + 2.0, par_h, "Pengumpulan Data",
+        fontsize=9.5,
+    )
+    # Use lowest bottom among the three (they share the same cy/h)
+    par_bot = min(bot_l, bot_m, bot_r)
 
-    n = len(STAGES)
-    top_width = 78
-    bottom_width = 52
-    # Height budget: title ~4, caption ~6, gaps between stages, stages fill rest
-    top_y = 92.5
-    bottom_margin = 8.5
-    gap = 2.6
-    available = top_y - bottom_margin - (n - 1) * gap
-    # Proportional heights by number of sub-steps (min readable)
-    weights = [len(s["steps"]) + 1.6 for s in STAGES]
-    total_w = sum(weights)
-    heights = [available * (w / total_w) for w in weights]
+    # --- 4. Join / merge ---
+    join_y = par_bot - gap * 0.85
+    for x in (left_x, mid_x, right_x):
+        # Plain drop lines into the join bar (classic fork-join look)
+        ax.plot([x, x], [par_bot - 0.05, join_y], color=ARROW, linewidth=LINE_W, zorder=2)
+    _hline(ax, left_x, right_x, join_y)
 
-    center_x = 50.0
-    stage_centers = []
-    y_cursor = top_y
+    # Arrow from join center down to Desain Sistem
+    y_arrow_end = join_y - gap
+    y_desain = y_arrow_end - BOX_H / 2
+    _vline_arrow(ax, cx, join_y, y_arrow_end + 0.05)
+    bot, _ = _box(ax, cx, y_desain, BOX_W_MAIN, BOX_H, "Desain Sistem", fontsize=10.5)
 
-    for i, stage in enumerate(STAGES):
-        t0 = i / n
-        t1 = (i + 1) / n
-        w_top = top_width - (top_width - bottom_width) * t0
-        w_bot = top_width - (top_width - bottom_width) * t1
-        stage_h = heights[i]
+    # --- Linear cascade ---
+    linear = [
+        "Penulisan Kode (Coding)",
+        "Pengujian Sistem (Blackbox Testing)",
+        "Penerapan dan Pemeliharaan",
+    ]
+    for label in linear:
+        y_arrow_end = bot - gap
+        y_next = y_arrow_end - BOX_H / 2
+        _vline_arrow(ax, cx, bot - 0.05, y_arrow_end + 0.05)
+        # Slightly wider for longer labels
+        w = 46.0 if "Blackbox" in label or "Pemeliharaan" in label else BOX_W_MAIN
+        if "Penulisan" in label:
+            w = 40.0
+        bot, _ = _box(ax, cx, y_next, w, BOX_H, label, fontsize=10.2)
 
-        y_top = y_cursor
-        y_bot = y_top - stage_h
+    # --- Selesai ---
+    y_arrow_end = bot - gap
+    y_end = y_arrow_end - BOX_H / 2
+    _vline_arrow(ax, cx, bot - 0.05, y_arrow_end + 0.05)
+    _box(ax, cx, y_end, BOX_W_START, BOX_H, "Selesai", rounded=True, fontsize=11)
 
-        # Slight rightward cascade (waterfall step)
-        shift = i * 1.6
-        cx = center_x + shift - (n - 1) * 0.8
-
-        # Outer cascade shell (navy)
-        pts = [
-            (cx - w_top / 2, y_top),
-            (cx + w_top / 2, y_top),
-            (cx + w_bot / 2, y_bot),
-            (cx - w_bot / 2, y_bot),
-        ]
-        poly = Polygon(
-            pts,
-            closed=True,
-            facecolor=NAVY,
-            edgecolor=NAVY_DARK,
-            linewidth=1.5,
-            zorder=2,
-        )
-        ax.add_patch(poly)
-
-        # Header band height (title area)
-        header_h = min(2.55, stage_h * 0.28)
-        # Inner light panel for sub-steps
-        inset = 1.15
-        panel_top = y_top - header_h - 0.25
-        panel_bot = y_bot + 0.55
-        # Approximate width at mid of panel
-        mid_frac = (y_top - (panel_top + panel_bot) / 2) / stage_h if stage_h else 0.5
-        w_mid = w_top - (w_top - w_bot) * mid_frac
-        panel_w = max(w_mid - 2 * inset, 28)
-
-        panel = FancyBboxPatch(
-            (cx - panel_w / 2, panel_bot),
-            panel_w,
-            panel_top - panel_bot,
-            boxstyle="round,pad=0.15,rounding_size=0.35",
-            facecolor=PANEL,
-            edgecolor=PANEL_EDGE,
-            linewidth=0.9,
-            zorder=3,
-        )
-        ax.add_patch(panel)
-
-        # Stage title (in navy header)
-        title_y = y_top - header_h / 2 - 0.05
-        ax.text(
-            cx,
-            title_y + 0.35,
-            stage["title"],
-            ha="center",
-            va="center",
-            fontsize=11.2,
-            fontweight="bold",
-            color="white",
-            fontfamily="DejaVu Sans",
-            zorder=4,
-        )
-        ax.text(
-            cx,
-            title_y - 0.75,
-            f"({stage['en']})",
-            ha="center",
-            va="center",
-            fontsize=6.8,
-            color="#C8D6E6",
-            fontfamily="DejaVu Sans",
-            zorder=4,
-        )
-
-        # Sub-steps inside panel
-        steps = stage["steps"]
-        panel_h = panel_top - panel_bot
-        # Vertical layout of bullets
-        line_gap = panel_h / (len(steps) + 0.85)
-        start_y = panel_top - line_gap * 0.75
-        left = cx - panel_w / 2 + 1.6
-
-        for j, step in enumerate(steps):
-            sy = start_y - j * line_gap
-            # Bullet
-            ax.plot(
-                left,
-                sy,
-                "o",
-                markersize=3.2,
-                color=NAVY,
-                zorder=5,
-                markeredgewidth=0,
-            )
-            ax.text(
-                left + 1.1,
-                sy,
-                step,
-                ha="left",
-                va="center",
-                fontsize=7.6,
-                color=SUB_TEXT,
-                fontfamily="DejaVu Sans",
-                zorder=5,
-            )
-
-        # Stage number badge on left
-        badge_x = cx - max(w_top, w_bot) / 2 - 4.2
-        circle = plt.Circle(
-            (badge_x, (y_top + y_bot) / 2),
-            1.45,
-            facecolor="white",
-            edgecolor=NAVY_DARK,
-            linewidth=1.3,
-            zorder=6,
-        )
-        ax.add_patch(circle)
-        ax.text(
-            badge_x,
-            (y_top + y_bot) / 2,
-            str(i + 1),
-            ha="center",
-            va="center",
-            fontsize=9.5,
-            fontweight="bold",
-            color=NAVY,
-            fontfamily="DejaVu Sans",
-            zorder=7,
-        )
-
-        stage_centers.append((cx, y_top, y_bot, w_bot))
-        y_cursor = y_bot - gap
-
-    # Downward arrows between stages
-    for i in range(n - 1):
-        cx, _, y_bot, _ = stage_centers[i]
-        cx2, y_top2, _, _ = stage_centers[i + 1]
-        arrow = FancyArrowPatch(
-            (cx, y_bot - 0.15),
-            (cx2, y_top2 + 0.2),
-            arrowstyle="-|>",
-            mutation_scale=14,
-            linewidth=1.55,
-            color=ARROW,
-            zorder=1,
-        )
-        ax.add_patch(arrow)
-
-    # Caption
+    # Caption (skripsi)
     ax.text(
         50,
-        5.5,
+        4.8,
         "Gambar 3.1 Alur Penelitian menggunakan metode waterfall",
         ha="center",
         va="center",
         fontsize=9.5,
         fontweight="bold",
-        color="#222222",
-        fontfamily="DejaVu Sans",
+        color=CAPTION,
+        fontfamily=FONT,
     )
     ax.text(
         50,
-        3.4,
+        2.7,
         "Sumber: Diadaptasi dari model Waterfall (Pressman, 2015)",
         ha="center",
         va="center",
         fontsize=7.5,
-        color=TITLE_SUB,
-        fontfamily="DejaVu Sans",
+        color=CAPTION_SUB,
+        fontfamily=FONT,
         style="italic",
     )
 
@@ -309,7 +206,7 @@ def draw_flowchart(out_path: Path, dpi: int = 300) -> None:
         out_path,
         dpi=dpi,
         bbox_inches="tight",
-        pad_inches=0.28,
+        pad_inches=0.35,
         facecolor=BG,
         edgecolor="none",
     )
